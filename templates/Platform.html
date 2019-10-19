@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/general.css" />
+    <script type="text/javascript" src="../static/alt_rows.js"></script>
+    <script type="text/javascript" src="../static/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="../static/jquery.tablesorter.js"></script>
+    <script language="javascript" type="text/javascript" src="../static/My97DatePicker/WdatePicker.js"></script>
+    <script type="text/javascript">
+        window.onload = function(){
+          console.log("onload");
+          altRows('alternatecolor');
+          }
+    </script>
+    <title>Best Platform</title>
+</head>
+<body>
+    <script type="text/javascript">
+     $(document).ready(function() {
+     $(".altrowstable").tablesorter();
+     });
+    </script>
+    <h1>Best Platform</h1>
+    {%  for site in sites %}
+    <a href="javascript:void(0);" onclick="onClickItem(this, 'site')">{{site}}</a><br>
+        {% if  selected %}
+            {% if  selected.Site == site %}
+                {%  for pf in platforms %}
+                    &nbsp;&nbsp;<a href="javascript:void(0);" onclick="onClickPlatform(this, '{{ site }}')">{{ pf }}</a>
+                {% endfor %}
+                <br>
+            {%  endif %}
+        {%  endif %}
+    {%  endfor %}
+    <hr>
+    {% if selected %}
+        <div><label class="pf_label">Site: </label><label class="sitename">{{ selected.Site }}</label></div>
+        <div><label class="pf_label">Platform: </label><label class="platformname">{{ selected.Platform }}</label></div>
+        <div>
+            <label class="pf_label">Description: </label>
+            <input type="text" class='description' value="{{ selected.Description }}" />
+        </div>
+        <div>
+            <label class="pf_label">Owner: </label>
+            <input type="text" class='owner' value="{{ selected.Owner }}" />
+            </div>
+        <!--<div ><label>Validity: </label><input type="date" class="validity" value="{{ selected.Validity }}"/></div> -->
+        <div class="validity">
+            <label class="pf_label">Validity: </label>
+            <!--<input type="date" value="2019-01-01" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd'});javascript:{$('#eta').trigger('change')}"/> -->
+            <input id="select-date" class="Wdate" value="{{ selected.Validity }}" onfocus="onClickSelectDate(this, this.parentNode)"/>
+            <span></span>
+        </div>
+        <div>
+          <button value="提交" onclick="submit_platform('{{ selected.Site }}', '{{ selected.Platform }}')">提交</button>
+        </div>
+        <br>
+    {%  endif %}
+    <div id="res">
+        <table class="altrowstable" id="alternatecolor">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <!--<th>Os</th> -->
+            <th>OPS_Name</th>
+            <!--<th>Structure</th> -->
+            <th>Host</th>
+            <th>Reachable</th>
+            <!--<th>Controlled</th> -->
+            <!--<th>Id_in_host</th> -->
+            <th>Running</th>
+            <!--<th>IP</th> -->
+            <!--<th>Interface</th> -->
+            <th>Thalix</th>
+            <th>Display</th>
+            <th>Config</th>
+            <th>CSCI</th>
+        </tr>
+        </thead>
+        <tbody>
+            {%  for item in nodes %}
+            <tr id={{ forloop.counter }} onmouseover="this.style.backgroundColor='#ffff66';" onmouseout="altRow(this)">
+            <td class='itemvalue'>{{item.Name}}</td>
+            <!--<td class='itemvalue'>{{item.Os}}</td>-->
+            <td class='itemvalue'>{{item.OPS_Name}}</td>
+            <!--<td class='itemvalue'>{{item.Structure}}</td>-->
+            <td class='itemvalue'>{{item.Host}}</td>
+            <td class='itemvalue'>{{item.Reachable}}</td>
+            <!--<td class='itemvalue'>{{item.Controlled}}</td>-->
+            <!--<td class='itemvalue'>{{item.Id_in_host}}</td>-->
+            <td class='itemvalue'>{{item.Running}}</td>
+            <!--<td class='itemvalue'>{{item.IP}}</td>-->
+            <!--<td class='itemvalue'>{{item.Interface}}</td>-->
+            <td class='itemvalue'>{{item.Thalix}}</td>
+            <td class='itemvalue'>{{item.Display}}</td>
+            <td class='itemvalue'>{{item.Config}}</td>
+            <td class='itemvalue'>{{item.CSCI}}</td>
+            </tr>
+            {%  endfor %}
+        </tbody>
+        </table>
+        </div>
+</body>
+</html>

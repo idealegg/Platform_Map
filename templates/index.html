@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 30px;
+            border: 1px solid #ccc;
+            background: #f5f5f5;
+            cursor: pointer;
+        }
+
+        #res {
+            margin-top: 30px;
+        }
+        #res table {
+            table-layout: fixed;
+            border-collapse: collapse;
+        }
+        #res td{
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Best Platform</h1>
+    <hr>
+    <a href="/generate/" onclick="document.getElementById('res').innerHTML='Generating...'"><span>生成</span></a>
+    <hr>
+    <div id="res">{{ result }}</div>
+</body>
+</html>
