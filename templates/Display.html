@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="../static/alt_rows.js"></script>
+    <script type="text/javascript" src="../static/jquery-3.4.1.min.js"></script>
+    <link rel="stylesheet" href="../static/general.css" />
+    <title>Best Platform</title>
+    <style type="text/css">
+               #menu div ul{
+            font:12px verdana, arial, sans-serif; /* 设置文字大小和字体样式 */
+            width: 100%;
+        }
+        #menu, #menu li {
+            list-style:none; /* 将默认的列表符号去掉 */
+            padding:2px; /* 将默认的内边距去掉 */
+            margin: 10px; /* 将默认的外边距去掉 */
+            float: left; /* 往左浮动 */
+            display: block;
+            border:1px solid #000;
+        }
+        #menu li div {
+            display:inline-block; /* 将链接设为块级元素 */
+            width:180px; /* 设置宽度 */
+            height:300px; /* 设置高度 */
+            line-height:30px; /* 设置行高，将行高和高度设置同一个值，可以让单行文本垂直居中 */
+            text-align:left; /* 居中对齐文字 */
+            background:#efefef; /* 设置背景色 */
+            color:#000000; /* 设置文字颜色 */
+            text-decoration:none; /* 去掉下划线 */
+             border-top:1px solid #000; /* 在左侧加上分隔线 */
+        }
+        // #menu li div:hover {
+        //    background:#146C9C; /* 变换背景色 */
+        //    color:#fff; /* 变换文字颜色 */
+        //}
+        #menu li div.last {
+            border-right:0; /* 去掉左侧边框 */
+        }
+    </style>
+</head>
+<body>
+    <h1>Best Display Info</h1>
+    {%  for floor in rooms %}
+        {% if forloop.first %}
+            <label>15层:</label>
+        {% else %}
+            <label>16层:</label>
+        {% endif %}
+        {% for room in floor %}
+            {% if forloop.first or forloop.counter == 6 or forloop.counter == 11 %}
+            <br>&nbsp;&nbsp;
+            {% endif %}
+            <span class="room"><a href="javascript:void(0);" onclick="onClickItem(this, 'room')">{{room.short}}</a>
+                <label>{{room.name}}&nbsp;&nbsp;</label></span>
+        {% endfor %}
+        <br>
+    {%  endfor %}
+    <hr>
+
+    <h3>{{ selected }}</h3>
+
+<div>
+  <ul id="menu">
+    {%  for item2 in items2 %}
+    <li>
+        <p>{{ item2.n.Host_name }}</p><div>
+        {%  for x in item2.x %}
+            <p>TTY{{ x.x.Tty }}
+               {%  for n in x.ns %}
+                   &nbsp;{{ n.Name }}
+               {%  endfor %}
+</p>
+        {%  endfor %}
+    </div>
+    </li>
+
+            <li>
+        <p>{{ item2.n.Host_name }}</p><div>
+        {%  for x in item2.x %}
+            <p>{{ x.x.Tty }}
+               {%  for n in x.ns %}
+                   &nbsp;{{ n.Name }}
+               {%  endfor %}
+</p>
+        {%  endfor %}
+    </div>
+    </li>
+
+            <li>
+        <p>{{ item2.n.Host_name }}</p><div>
+        {%  for x in item2.x %}
+            <p>{{ x.x.Tty }}
+               {%  for n in x.ns %}
+                   &nbsp;{{ n.Name }}
+               {%  endfor %}
+</p>
+        {%  endfor %}
+    </div>
+    </li>
+    {%  endfor %}
+  </ul>
+  </div>
+
+</body>
+</html>
