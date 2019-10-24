@@ -114,10 +114,10 @@ function expandWikiNode(icons, rec) {
           var i_Date = Date.parse(date.value);
           var c_Date = new Date();
           if (i_Date >= c_Date){
-            sp.className = 'status correct';
+            sp.className = 'uk-icon-check';
           }
           else{
-            sp.className = 'status incorrect';
+            sp.className = 'uk-icon-close';
           }
     }
 
@@ -205,20 +205,22 @@ function expandWikiNode(icons, rec) {
         //保存初始值
         var tdPreText = $(t).text();
         var width = $(t).width();
-        var response = 'Failed';
+        var roll_back = false;
         //var padding = $(t).css('padding-left');
         //给td设置宽度和给input设置宽度并赋值
-        $(t).html("<input type='text'>").find("input").width(width).val(tdPreText).focus();
+        $(t).html("<input type='text'>").find("input").width(width).val(tdPreText.trim()).focus();
         //失去焦点的时候重新赋值
         var inputDom = $(t).find("input");
         inputDom.blur(function () {
             var newText = $(this).val();
-            if(newText.trim() === ''){
-                $err.text('Not allowed to remove!');
-            }
-            else if (newText.trim() === tdPreText.trim()){
+            if (newText.trim() === tdPreText.trim()){
                 $err.text('No change');
-            }else{
+                roll_back = true;
+            }else if(newText.trim() === ''){
+                $err.text('Not allowed to remove!');
+                roll_back = true;
+            }
+            else {
 
                 var jqxhr = $.ajax({
                     url: '/submit_display/',
@@ -252,7 +254,11 @@ function expandWikiNode(icons, rec) {
                                         return $(this).text() === 'TTY'+cx['tty'];
                                     }).parent();
                                 $tty_info.attr('conflict', cx['c']);
-                                $tty_info.find('.node_text').text(cx['ns']);
+                                if (cx['ns'] === ''){
+                                    $tty_info.find('.node_text').html('&nbsp;');
+                                }else{
+                                    $tty_info.find('.node_text').text(cx['ns']);
+                                }
                             }
                         }
                     },
@@ -274,7 +280,11 @@ function expandWikiNode(icons, rec) {
                 });
             }
             $(this).remove();
-            tdDom.text(newText);
+            if (roll_back){
+                tdDom.text(tdPreText);
+            }else{
+                tdDom.text(newText);
+            }
         });
     }
 
