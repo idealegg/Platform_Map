@@ -304,13 +304,15 @@ def submit_display(request):
       if cmp(nodes, nodes2) != 0:
         for n in [y for y in nodes if y not in nodes2]:
           vm = virtMachine.VirMachine(n)
-          old_x = vm.get_vm_db_inst().X_server
+          vm_db = vm.get_vm_db_inst()
+          old_x =None if not vm_db else vm_db.X_server
           ret = change_x11_fw(vm, n, x)
           if ret != "Successful":
             break
-          changed_xs.append(old_x)
-        if changed_xs:
-          changed_xs.append(x)
+          if not changed_xs:
+            changed_xs.append(x)
+          if old_x:
+            changed_xs.append(old_x)
         for cx in changed_xs:
           cx_ns = ' '.join(map(lambda y: y.Name, node.objects.filter(X_server=cx)))
           ret_cx.append({'host': cx.Host,
