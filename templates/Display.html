@@ -2,105 +2,105 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script type="text/javascript" src="../static/alt_rows.js"></script>
-    <script type="text/javascript" src="../static/jquery-3.4.1.min.js"></script>
-    <link rel="stylesheet" href="../static/general.css" />
-    <title>Best Platform</title>
-    <style type="text/css">
-               #menu div ul{
-            font:12px verdana, arial, sans-serif; /* 设置文字大小和字体样式 */
-            width: 100%;
-        }
-        #menu, #menu li {
-            list-style:none; /* 将默认的列表符号去掉 */
-            padding:2px; /* 将默认的内边距去掉 */
-            margin: 10px; /* 将默认的外边距去掉 */
-            float: left; /* 往左浮动 */
-            display: block;
-            border:1px solid #000;
-        }
-        #menu li div {
-            display:inline-block; /* 将链接设为块级元素 */
-            width:180px; /* 设置宽度 */
-            height:300px; /* 设置高度 */
-            line-height:30px; /* 设置行高，将行高和高度设置同一个值，可以让单行文本垂直居中 */
-            text-align:left; /* 居中对齐文字 */
-            background:#efefef; /* 设置背景色 */
-            color:#000000; /* 设置文字颜色 */
-            text-decoration:none; /* 去掉下划线 */
-             border-top:1px solid #000; /* 在左侧加上分隔线 */
-        }
-        // #menu li div:hover {
-        //    background:#146C9C; /* 变换背景色 */
-        //    color:#fff; /* 变换文字颜色 */
-        //}
-        #menu li div.last {
-            border-right:0; /* 去掉左侧边框 */
-        }
-    </style>
+    <link rel="icon" href="data:image/ico;base64,aWNv">
+    <link rel="stylesheet" href="../static/css/general.css" />
+    <link rel="stylesheet" href="../static/css/main.css" />
+    <script type="text/javascript" src="../static/js/alt_rows.js"></script>
+    <script type="text/javascript" src="../static/js/jquery-3.4.1.min.js"></script>
+    <title>Best Display Machine List</title>
 </head>
 <body>
-    <h1>Best Display Info</h1>
-    {%  for floor in rooms %}
-        {% if forloop.first %}
-            <label>15层:</label>
-        {% else %}
-            <label>16层:</label>
-        {% endif %}
-        {% for room in floor %}
-            {% if forloop.first or forloop.counter == 6 or forloop.counter == 11 %}
-            <br>&nbsp;&nbsp;
-            {% endif %}
-            <span class="room"><a href="javascript:void(0);" onclick="onClickItem(this, 'room')">{{room.short}}</a>
-                <label>{{room.name}}&nbsp;&nbsp;</label></span>
-        {% endfor %}
-        <br>
-    {%  endfor %}
-    <hr>
+    <div >
+        <div class="uk-flex-item-none x-sidebar-left" style="margin:5px;position:fixed;top:0;bottom:0">
+            <div class="uk-float-right" style="padding-top:5px">
+                <a href="#0" onclick="expandWikiNode($('#x-wiki-index>div>i'), true)" style="margin-left:5px">
+                    <i class="uk-icon-expand"></i>
+                </a>
+                <a href="#0" onclick="collapseWikiNode($('#x-wiki-index>div>i'), true)" style="margin-left:5px">
+                    <i class="uk-icon-compress"></i>
+                </a>
+            </div>
+            <ul class="uk-nav uk-nav-side">
+                <li class="uk-nav-header" id="display_info">Display Info</li>
+            </ul>
+            <ul id="x-wiki-index" class="uk-nav uk-nav-side" style="margin-right:-15px;width: 200px">
+                {%  for floor in rooms %}
+                    {% if forloop.first %}
+                    <div id="menu-floor-15" depth="0" style="position:relative;margin-left:15px;" class="uk-active" expand="true">
+                    {% else %}
+                    <div id="menu-floor-16" depth="0" style="position:relative;margin-left:15px;" class="uk-active" expand="true">
+                    {% endif %}
+                        <i onclick="toggleWikiNode(this)" class="uk-icon-minus-square-o" style="position:absolute;margin-left:-1em;padding-top:4px;"></i>
+                        {% if forloop.first %}
+                        <label class="x-wiki-index-item" style="width: 200px;color: #336699;">15层:</label>
+                        {% else %}
+                        <label class="x-wiki-index-item" style="width: 200px;color: #336699;">16层:</label>
+                        {% endif %}
+                        {% for room in floor %}
+                        <div id="menu-{{ room.short }}" depth="1" style="position: relative; margin-left: 15px;">
+                            <a href="#div-floor-{{ room.short }}" class="x-wiki-index-item" style="width: 115px">{{ room.short }}&nbsp;{{room.name}}</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </ul>
+            <ul>
+                <li style="list-style:none;padding: 5px">
+                    <label class="tty_info" conflict="Y">&nbsp;&nbsp;</label>
+                    <label>&nbsp;&nbsp;conflict tty</label>
+                </li>
+                <li style="list-style:none;padding: 5px">
+                    <label class="tty_info" active="True">&nbsp;&nbsp;</label>
+                    <label>&nbsp;&nbsp;active tty</label>
+                </li>
+            </ul>
+            <ul style="border: solid 2px ">
+                <label>Note: Double click node name to edit!</label>
+            </ul>
+        </div>
 
-    <h3>{{ selected }}</h3>
+        <div class="right_content">
 
-<div>
-  <ul id="menu">
-    {%  for item2 in items2 %}
-    <li>
-        <p>{{ item2.n.Host_name }}</p><div>
-        {%  for x in item2.x %}
-            <p>TTY{{ x.x.Tty }}
-               {%  for n in x.ns %}
-                   &nbsp;{{ n.Name }}
-               {%  endfor %}
-</p>
-        {%  endfor %}
+            {%  for room_info in room_infos %}
+
+            <div id="div-floor-{{ room_info.room }}" class="content_item">
+                <h3>{{ room_info.room }}</h3>
+
+                {% for d in room_info.ds %}
+
+                <div id='div-{{ d.n.Host_name }}' class="column_item">
+                    <div class="dm_host">{{ d.n.Host_name }}</div>
+                    <div id="error_message" style="height: 20px"></div>
+                    <div class="dpy_info">
+
+                    {%  for x in d.xs %}
+
+                            <div class="tty_info" conflict="{{ x.conflict }}" active="{{ x.x.Active }}">
+                                <div class="tty_text">TTY{{ x.x.Tty }}</div>
+                                <div class="node_info">
+                                   {% ifequal x.ns '' %}
+                                   <div class="node_text" title="{{ x.ns }}" ondblclick="dbclick_tty_nodes(this)">&nbsp;</div>
+                                   {% else %}
+                                   <div class="node_text" title="{{ x.ns }}" ondblclick="dbclick_tty_nodes(this)">{{ x.ns }}</div>
+                                   {% endifequal %}
+                                </div>
+                                <div class="clear_float"></div>
+                            </div>
+
+                    {% endfor %}
+
+                    </div>
+                </div>
+                {%  endfor %}
+
+                <div class="clear_float"></div>
+            </div>
+
+            {%  endfor %}
+
+        </div>
+
     </div>
-    </li>
-
-            <li>
-        <p>{{ item2.n.Host_name }}</p><div>
-        {%  for x in item2.x %}
-            <p>{{ x.x.Tty }}
-               {%  for n in x.ns %}
-                   &nbsp;{{ n.Name }}
-               {%  endfor %}
-</p>
-        {%  endfor %}
-    </div>
-    </li>
-
-            <li>
-        <p>{{ item2.n.Host_name }}</p><div>
-        {%  for x in item2.x %}
-            <p>{{ x.x.Tty }}
-               {%  for n in x.ns %}
-                   &nbsp;{{ n.Name }}
-               {%  endfor %}
-</p>
-        {%  endfor %}
-    </div>
-    </li>
-    {%  endfor %}
-  </ul>
-  </div>
 
 </body>
 </html>

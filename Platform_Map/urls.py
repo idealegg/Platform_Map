@@ -19,10 +19,11 @@ from django.contrib import admin
 from Display_Platform_Info import views
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
-    url(r'^index', views.index),
+    #url(r'^admin/', admin.site.urls),
     url(r'^platform/$', views.platform),
-    url(r'^generate/$', views.generate),
-    url(r'^physical_list/$', views.physical),
-    url(r'^display_list/$', views.display),
+    #url(r'^generate/$', views.generate),
+    url(r'^physical/$', views.physical),
+    url(r'^display/$', views.display),
+    url(r'^submit_platform/$', views.submit_platform),
+    url(r'^submit_display/$', views.submit_display),
 ]

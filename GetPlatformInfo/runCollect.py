@@ -167,6 +167,7 @@ class RunCollect:
         current_pf = platform.objects.get(Site=site, Platform=pf)
         if current_pf in completed_pfs:
           myLogging.logger.info("Platform [%s %s] collect completed last time!" % (site, pf))
+          self.node_ids.update(lambda x: x.id, node.objects.filter(Platform=current_pf))
           continue
         # Update run state
         sqlRunState.SQLRunState(is_begin=True, pf=current_pf).save()

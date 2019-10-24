@@ -2,69 +2,81 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="../static/general.css" />
-    <script type="text/javascript" src="../static/alt_rows.js"></script>
-    <script type="text/javascript" src="../static/jquery-3.4.1.min.js"></script>
-    <script type="text/javascript" src="../static/jquery.tablesorter.js"></script>
+    <link rel="icon" href="data:image/ico;base64,aWNv">
+    <link rel="stylesheet" href="../static/css/general.css" />
+    <link rel="stylesheet" href="../static/css/main.css" />
+    <script type="text/javascript" src="../static/js/alt_rows.js"></script>
+    <script type="text/javascript" src="../static/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="../static/js/jquery.tablesorter.js"></script>
     <script type="text/javascript">
         window.onload = function(){
           console.log("onload");
           altRows('alternatecolor');
-          }
+          };
+        $(document).ready(function() {
+         $(".altrowstable").tablesorter();
+         });
     </script>
     <title>Best Physical Machine List</title>
 </head>
 <body>
-    <script type="text/javascript">
-     $(document).ready(function() {
-     $(".altrowstable").tablesorter();
-     });
-    </script>
-    <h1>Best Physical Machine List</h1>
-    {%  for physical in physicals %}
-        {% if not farloop.first %}
-            &nbsp;
-        {% endif %}
-        <span class="hostname">
-            <a href="javascript:void(0);" onclick="onClickItem(this, 'physical')">{{physical}}</a>
-        </span>
-    {%  endfor %}
-    <hr>
-    <div id="res">
-    <h3>{{ selected.Host_name }}</h3>
-    Total: {{ attr.total }}  Running: {{ attr.running }}
-        <table class="altrowstable" id="alternatecolor">
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>OPS_Name</th>
-            <th>Host</th>
-            <th>Reachable</th>
-            <th>Id_in_host</th>
-            <th>Running</th>
-            <th>Thalix</th>
-            <th>Display</th>
-            <th>Config</th>
-            <th>CSCI</th>
-        </tr>
-        </thead>
-        <tbody>
-            {%  for item in nodes %}
-            <tr id={{ forloop.counter }} onmouseover="this.style.backgroundColor='#ffff66';" onmouseout="altRow(this)">
-            <td class='itemvalue'>{{item.Name}}</td>
-            <td class='itemvalue'>{{item.OPS_Name}}</td>
-            <td class='itemvalue'>{{item.Host}}</td>
-            <td class='itemvalue'>{{item.Reachable}}</td>
-            <td class='itemvalue'>{{item.Id_in_host}}</td>
-            <td class='itemvalue'>{{item.Running}}</td>
-            <td class='itemvalue'>{{item.Thalix}}</td>
-            <td class='itemvalue'>{{item.Display}}</td>
-            <td class='itemvalue'>{{item.Config}}</td>
-            <td class='itemvalue'>{{item.CSCI}}</td>
-            </tr>
-            {%  endfor %}
-        </tbody>
-        </table>
+    <div >
+        <div class="uk-flex-item-none x-sidebar-left" style="margin:5px;position:fixed;top:0;bottom:0">
+            <ul class="uk-nav uk-nav-side">
+                <li class="uk-nav-header" id="physical_list">Physical Machine</li>
+            </ul>
+            <ul id="x-wiki-index" class="uk-nav uk-nav-side" style="margin-right:-15px;">
+                {%  for hm in hms %}
+                  <div id="{{ site }}" style="position:relative;margin-left:15px;" class="uk-active" >
+                    <!--<i onclick="toggleWikiNode(this)" class="uk-icon-minus-square-o" style="position:absolute;margin-left:-1em;padding-top:8px;"></i>-->
+                    <a href="#div-{{ hm.hm_name }}" class="x-wiki-index-item">{{hm.hm_name}}</a>
+                  </div>
+                {% endfor %}
+            </ul>
         </div>
+
+        <div class="right_content">
+        {%  for hm in hms %}
+            <div id="div-{{ hm.hm_name }}" class="content_item">
+                <div id="res" style="margin: 10px">
+                <h3>{{ hm.hm_name }}</h3>
+                Total: {{ hm.total }}  Running: {{ hm.running }}
+                    <table class="altrowstable" id="table-{{ hm.hm_name }}">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>OPS_Name</th>
+                        <th>Host</th>
+                        <th>Reachable</th>
+                        <th>Id_in_host</th>
+                        <th>Running</th>
+                        <th>Thalix</th>
+                        <th>Display</th>
+                        <th>Config</th>
+                        <th>CSCI</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {%  for item in hm.nodes %}
+                        <tr id={{ forloop.counter }} onmouseover="this.style.backgroundColor='#ffff66';" onmouseout="altRow(this)">
+                        <td class='itemvalue'>{{item.Name}}</td>
+                        <td class='itemvalue'>{{item.OPS_Name}}</td>
+                        <td class='itemvalue'>{{item.Host}}</td>
+                        <td class='itemvalue'>{{item.Reachable}}</td>
+                        <td class='itemvalue'>{{item.Id_in_host}}</td>
+                        <td class='itemvalue'>{{item.Running}}</td>
+                        <td class='itemvalue'>{{item.Thalix}}</td>
+                        <td class='itemvalue'>{{item.Display}}</td>
+                        <td class='itemvalue'>{{item.Config}}</td>
+                        <td class='itemvalue'>{{item.CSCI}}</td>
+                        </tr>
+                        {%  endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
+        {%  endfor %}
+        </div>
+    </div>
 </body>
 </html>

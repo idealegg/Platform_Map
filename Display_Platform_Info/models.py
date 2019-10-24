@@ -13,7 +13,7 @@ class platform(models.Model):
   Platform = models.CharField(max_length=10)
   Description = models.CharField(max_length=100, null=True, default='')
   Owner = models.CharField(max_length=30, null=True, default='')
-  Validity = models.DateField(null=True, default=None)
+  Validity = models.DateField(null=True, default='')
   Last_modified = models.DateTimeField(auto_now=True)
   Created = models.DateTimeField(auto_now_add=True)
   class Meta:

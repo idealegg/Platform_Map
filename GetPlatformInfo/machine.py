@@ -55,10 +55,12 @@ class Machine(object):
       myLogging.logger.warning("ssh client is already closed!")
 
   @myLogging.log("Machine")
-  def execute_cmd(self, cmd):
+  def execute_cmd(self, cmd, redirect_stderr=True):
     myLogging.logger.info( "Run cmd '%s' in %s:%d" % (cmd, self.host, self.port))
     self.last_cmd = cmd
-    self.stdin, self.stdout, self.stderr=self.ssh_client.exec_command("%s 2>&1" % cmd)
+    if redirect_stderr:
+      cmd = "%s 2>&1" % cmd
+    self.stdin, self.stdout, self.stderr=self.ssh_client.exec_command(cmd)
     #print self.stdout.read()
 
   @myLogging.log("Machine")
