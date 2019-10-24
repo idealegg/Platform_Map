@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import json
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -26,7 +27,7 @@ SECRET_KEY = '&@81)#2qn+vv4@r94gt@9l#&885214=h89w8ujoz5!i7$ze$lz'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '192.168.117.84', 'bestsrv02li']
 
 
 # Application definition
@@ -123,3 +124,9 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
+
+# logging
+
+with open(os.path.join(BASE_DIR, 'conf', 'logging.json')) as logging_json:
+    j_str = logging_json.read().replace('log/', 'log/server_')
+    LOGGING = json.loads(j_str)

@@ -1,0 +1,194 @@
+    table.altrowstable {
+      font-family: verdana,arial,sans-serif;
+      font-size:14px;
+      color:#333333;
+      border-width: 1px;
+      border-color: #a9c6c9;
+      border-collapse: collapse;
+    }
+    table.altrowstable th {
+      border-width: 1px;
+      padding: 8px;
+      background-color: #d4e3e5;
+      border-style: solid;
+      border-color: #a9c6c9;
+    }
+    tr td.itemvalue {
+      border-width: 1px;
+      padding: 8px;
+      border-style: solid;
+      border-color: #a9c6c9;
+    }
+
+    input.validedate {
+        background-color: #00ff00;
+        color: #ffffff;
+    }
+
+    div.validedate {
+        background-color: #ffff00;
+        color: #ff0000;
+    }
+
+	.correct{
+        display: inline-block;
+        width: 10px;
+        height:5px;
+        background: green;
+        line-height: 0;
+        font-size:0;
+        vertical-align: middle;
+        -webkit-transform: rotate(45deg);
+    }
+
+    .correct:after{
+        content:'/';
+        display:block;
+        width: 20px;
+        height:5px;
+        background: green;
+        -webkit-transform: rotate(-90deg) translateY(-50%) translateX(50%);
+    }
+
+    .incorrect{
+        display: inline-block;
+        width: 20px;
+        height:5px;
+        background: red;
+        line-height: 0;
+        font-size:0;
+        vertical-align: middle;
+        -webkit-transform: rotate(45deg);
+    }
+
+	.incorrect:after{
+        content:'/';
+        display:block;
+        width: 20px;
+        height:5px;
+        background: red;
+        -webkit-transform: rotate(-90deg);
+    }
+
+    .info_line{
+        margin: 10px;
+    }
+    .pf_label {
+        width: 100px;
+        display: inline-block;
+    }
+
+    .description {
+        width: 300px;
+        border-bottom-width: 1px;
+    }
+    .owner {
+        width: 80px;
+        border-bottom-width: 1px;
+    }
+
+    .clear_float{
+        clear:both;
+        height:0;
+        font-size:1px;
+        line-height:0;
+    }
+
+    .right_content {
+        padding-left:15px;
+        position:fixed;
+        overflow:scroll;
+        top:0;
+        left:200px;
+        bottom:0;
+        right:0;
+    }
+
+    .content_item {
+        margin: 20px;
+        border: 2px solid #dddddd;
+    }
+
+    .column_item {
+        float:left;
+        /*overflow:scroll;*/
+        box-sizing:border-box;
+        margin:5px;
+        border:solid 7px #ddd;
+        display:block;
+    }
+
+    .dm_host {
+        margin:2px;
+        border:solid 1px #ddd;
+        border-radius: 7px;
+        color: #e28327;
+        font-size: 20px;
+        padding: 2px;
+    }
+
+    .dpy_info {
+        margin:2px;
+        border:solid 3px #3399ff;
+        border-radius: 7px;
+        background: #efefef;
+        overflow-y:scroll;
+        overflow-x: hidden;
+        width:220px;
+        height:200px;
+        padding: 2px;
+    }
+
+    .tty_info {
+        margin:2px;
+        border:solid 1px #6A6AFF;
+        border-radius: 5px;
+        color: #1a1a1a;
+        padding: 2px;
+        height: 24px;
+        width: 195px;
+    }
+
+    .tty_info[conflict="Y"] {
+        background: #dd0055;
+        color: yellow;
+    }
+
+    .tty_info[active="True"] {
+        background: #00ff00;
+    }
+
+    .tty_text {
+        margin:1px;
+        border:solid 1px #034c50;
+        border-radius: 3px;
+        padding: 1px;
+        width: 42px;
+        height: 20px;
+        float:left;
+    }
+
+    .node_info {
+        margin:1px;
+        border:solid 1px #034c50;
+        border-radius: 3px;
+        padding: 1px;
+        width: 140px;
+        height: 20px;
+        float:left;
+    }
+
+    .node_text {
+        /*width: 100%;*/
+        padding-left: 3px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+
+    #error_message {
+        color: red;
+    }
+
+
+

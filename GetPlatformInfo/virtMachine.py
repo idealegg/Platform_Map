@@ -5,6 +5,7 @@ from GetPlatformInfo.sqlOperator import SQLOperator
 from Display_Platform_Info.models import node, X_server, host_machine, platform_node_list, platform
 from GetPlatformInfo.sqlDisplayMachine import SQLDisplayMachine
 import re
+import myLogging
 
 
 class VirMachine(Machine, SQLOperator):
@@ -25,6 +26,9 @@ class VirMachine(Machine, SQLOperator):
     self.db_inst = node(**self.attr)
     self.insert_or_update(self.db_inst, filters={'Name': self.attr['Name']})
 
+  def get_vm_db_inst(self):
+    return self.get_db_inst(filters={'Name': self.attr['Name']})
+
   def get_x_server(self):
     if 'Display' in self.attr:
       if self.attr['Display']:
@@ -39,6 +43,19 @@ class VirMachine(Machine, SQLOperator):
         if x_set.count():
           return x_set[0]
     return None
+
+  @myLogging.log('VirMachine')
+  def set_x_server(self, x):
+    try:
+      self.db_inst = node.objects.get(Name=self.attr['Name'])
+      self.db_inst.X_server = x
+      self.db_inst.Display = '%s %d' %(x.Host, x.Port)
+      self.db_inst.save()
+    except:
+      myLogging.logger.exception('Exception in setting x server [%s %d] for node [%s]!'
+                                 %(x.Host, x.Port, self.attr['Name']))
+      return False
+    return True
 
   def get_host_machine(self):
     if 'Host' in self.attr:

@@ -111,7 +111,7 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
               }
     return None
   if cmd == 'cat /etc/thalix-release':
-    return {'Thalix': cmd_out[0]}
+    return {'Thalix': cmd_out[0].strip()}
   if cmd == 'ifconfig -a':
     cur_interface = ''
     interface = {}

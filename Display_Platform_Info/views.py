@@ -5,17 +5,20 @@ from django.shortcuts import render
 
 # Create your views here.
 
-from django.shortcuts import render,render_to_response
-from django import forms
-from django.http import HttpResponseRedirect,HttpResponse
-from django.contrib.auth.hashers import make_password,check_password
-import json
-import pprint
+from django.shortcuts import render
+from django.http import HttpResponse, JsonResponse
 import GetPlatformInfo.runCollect as runCollect
+import GetPlatformInfo.sqlSiteConf as sqlSiteConf
+import GetPlatformInfo.myLogging as myLogging
+import GetPlatformInfo.virtMachine as virtMachine
 
 from django.views.decorators.csrf import csrf_exempt
-from Display_Platform_Info.models import node, platform_node_list, host_machine, display_machine, X_server
+from Display_Platform_Info.models import node, host_machine, display_machine, X_server, site_conf
 import Display_Platform_Info.models
+import Platform_Map.settings
+import os
+import re
+import socket
 
 
 ORPHAN_NAME = 'ORPHAN'
@@ -38,6 +41,71 @@ ROOM_MAPPING = [
   {'short': 'DGM', 'name': '副总经理'},
   {'short': 'FIN', 'name': '财务办公室'}], # floor 16
 ]
+rooms = []
+for room_map in ROOM_MAPPING:
+  rooms.extend(map(lambda x: x['short'], room_map))
+DESC_PATTERN = re.compile('^\s*Description\s*[:=]')
+OWNER_PATTERN = re.compile('^\s*Owner\s*[:=]')
+VAILID_PATTERN = re.compile('^\s*Validity\s*[:=]')
+
+
+@myLogging.log('views')
+def write_back_to_conf(pf):
+  conf = os.path.join(Platform_Map.settings.BASE_DIR, 'conf', pf.Site, '%s.conf' % pf.Site)
+  conf_new = "%s.new" % conf
+  SITE_PATTERN = re.compile('^\s*\[\s*%s\s+%s\s*\]' % (pf.Site, pf.Platform))
+  written = {'Description': False, 'Owner': False, 'Validity': False}
+  site_found = False
+  desc_found = False
+  completed = False
+  with open(conf) as fd:
+    with open(conf_new, 'w') as fd2:
+      lines = []
+      for line in fd:
+        if not completed:
+          ret = re.search(SITE_PATTERN, line)
+          if ret:
+            site_found = True
+          elif site_found:
+            ret = re.search(DESC_PATTERN, line)
+            if ret:
+              desc_found = True
+              line = 'Description: %s\n' % pf.Description
+              written['Description'] = True
+            else:
+              if desc_found:
+                if not line.startswith('#') and not line.startswith(';') and not line.startswith(' '):
+                  desc_found = False
+                else:
+                  myLogging.logger.info("Skip the second line for Description!")
+                  continue
+              ret = re.search(OWNER_PATTERN, line)
+              if ret:
+                line = 'Owner: %s\n' % pf.Owner
+                written['Owner'] = True
+              else:
+                ret = re.search(VAILID_PATTERN, line)
+                if ret:
+                  line = 'Validity: %s\n' % pf.Validity
+                  written['Validity'] = True
+                elif line.replace(" ", '').startswith('['):
+                  completed = True
+                  if not written['Description']:
+                    line = "".join([line, 'Description: %s\n' % pf.Description])
+                  if not written['Owner']:
+                    line = "".join([line, 'Owner: %s\n' % pf.Owner])
+                  if not written['Validity']:
+                    line = "".join([line, 'Validity: %s\n' % pf.Validity])
+        lines.append(line)
+      fd2.write(''.join(lines))
+  myLogging.logger.info("To delete conf file!")
+  os.unlink(conf)
+  myLogging.logger.info("To rename new conf file!")
+  os.rename(conf_new, conf)
+  sc = site_conf.objects.get(Site=pf.Site)
+  sc.Md5 = sqlSiteConf.SQLSiteConf.get_conf_md5(conf)
+  myLogging.logger.info("To update site_conf table!")
+  sc.save()
 
 
 def index(request):
@@ -52,118 +120,217 @@ def generate(request):
     return render(request, 'index.html', {'result': u"生成成功"})
 
 
+def clear_unuse_fields(n):
+  n1={}
+  n1['Name'] = n.Name
+  n1['OPS_Name'] = n.OPS_Name
+  n1['Host'] = n.Host
+  n1['Reachable'] = n.Reachable
+  n1['Running'] = n.Running
+  n1['Thalix'] = n.Thalix
+  n1['Display'] = "%s %s" % (n.X_server.Host, n.X_server.Tty) if n.X_server else None
+  n1['Config'] = n.Config
+  n1['CSCI'] = n.CSCI
+  return n1
+
+
+@myLogging.log('views')
 @csrf_exempt
 def platform(request):
-  selected_pf_inst = None
-  selected_pf = None
-  selected_site = ''
-  all_clear = ''
-  is_update = False
-  error = 'ok'
-  modified = {'description': '', 'owner': '', 'validity': '', 'info': ''}
-  if request.method == 'POST':
-    selected_site = request.POST.get('site')
-    selected_pf = request.POST.get('platform')
-    for key in modified.keys():
-      modified[key] = request.POST.get(key)
-  if modified['info']:
-    selected_site, selected_pf, all_clear = modified['info'].split()
-  if all_clear:
-    is_update = all_clear == 'Y' or modified['description'] or modified['owner'] or modified['validity']
-  print 'modified: %s' % modified
   platforms = Display_Platform_Info.models.platform.objects.all()
   sites = list(set(map(lambda x: x.Site, platforms)))
   sites.sort()
-  if not selected_site:
-    selected_site = sites[0]
-  pfs = []
-  if selected_site.upper() != ORPHAN_NAME:
-    pfs = list(set(map(lambda x: x.Platform, platforms.filter(Site=selected_site))))
-    pfs.sort()
-    if not selected_pf:
-      selected_pf = pfs[0]
-    print "select site: %s, pf: %s " % (selected_site, selected_pf)
-    selected_pf_inst = platforms.get(Site=selected_site, Platform=selected_pf)
-    if is_update:
-      selected_pf_inst.Description = modified['description']
-      selected_pf_inst.Owner = modified['owner']
-      selected_pf_inst.Validity = modified['validity'] if modified['validity'] else None
-      selected_pf_inst.save()
-    pnls = platform_node_list.objects.filter(Platform=selected_pf_inst)
-    nodes = node.objects.filter(Platform=selected_pf_inst)
-    print "sites: %s" % sites
-    print "pfs: %s" % pfs
-    print "pnls: %s" % pnls
-    print "nodes: %s" % nodes
-    print "selected_site: %s" % selected_site
-    print "selected_pf: %s" % selected_pf
-    print "selected_pf_inst: %s" % selected_pf_inst
-  else:
-    nodes = node.objects.filter(Orphan='Y')
-  if selected_pf_inst and not selected_pf_inst.Validity:
-    selected_pf_inst.Validity = ''
-  return render(request, 'Platform.html', {'nodes': nodes,
-                                           'platforms': pfs,
-                                           'sites': sites,
-                                           'selected': selected_pf_inst,
-                                           'error': error
+  ret_info = []
+  orphan_site = {}
+  for site in sites:
+    a_site = {'site_name': site,
+              'pfs': []}
+    pfs = platforms.filter(Site=site).order_by('Platform')
+    for pf in pfs:
+      nodes = node.objects.filter(Platform=pf).order_by('Name')
+      a_pf = {'pf_name': pf.Platform,
+              'desc': pf.Description,
+              'owner': pf.Owner,
+              'valid': pf.Validity,
+              'nodes': nodes}
+      a_site['pfs'].append(a_pf)
+    if site != ORPHAN_NAME:
+      ret_info.append(a_site)
+    else:
+      orphan_site.update(a_site)
+  ret_info.append(orphan_site)
+  myLogging.logger.info("ret: %s" % ret_info)
+  return render(request, 'Platform.html', {'sites': ret_info,
                                            })
 
 
+@myLogging.log('views')
+@csrf_exempt
+def submit_platform(request):
+  ret = 'Failed'
+  if request.method == 'POST':
+    try:
+      site = request.POST.get('site').strip()
+      pf = request.POST.get('pf').strip()
+      desc = request.POST.get('desc').strip()
+      owner = request.POST.get('owner').strip()
+      valid = request.POST.get('valid').strip()
+      myLogging.logger.info('POST:\nsite: %s\n pf: %s\n desc: %s\n owner: %s\n valid: %s' % (site, pf, desc, owner, valid))
+      pf_info = Display_Platform_Info.models.platform.objects.get(Site=site, Platform=pf)
+      if pf_info.Description != desc or pf_info.Owner != owner or pf_info.Validity != valid:
+        pf_info.Description = desc
+        pf_info.Owner = owner
+        pf_info.Validity = valid
+        pf_info.save()
+        write_back_to_conf(pf_info)
+        ret = 'Successful'
+      else:
+        ret = 'No change!'
+    except Exception, e:
+      myLogging.logger.exception('Exception in submit_platform!')
+      ret = e.message
+  myLogging.logger.info('ret: %s' %ret)
+  return HttpResponse(ret)
+
+
+@myLogging.log('views')
 @csrf_exempt
 def physical(request):
-  selected_p = ''
-  p_inst = None
-  if request.method == 'POST':
-    selected_p = request.POST.get('physical')
-  physicals = host_machine.objects.all()
-  ps = map(lambda x: x.Host_name, physicals)
-  ps.sort()
-  if not selected_p:
-    selected_p = ps[0]
-  for p in physicals:
-    if p.Host_name == selected_p:
-      p_inst = p
-  print "p_inst: %s" % p_inst
-  print "selected_p: %s" % selected_p
-  ns = node.objects.filter(Host_Machine=p_inst).order_by('Name')
-  nodes = map(lambda x: x.Name, ns)
-  print "ps: %s" % ps
-  print "nodes: %s" % nodes
-  return render(request, 'Physical.html', {'nodes': ns,
-                                           'physicals': ps,
-                                           'selected': p_inst,
-                                           'attr': {'total': ns.count(), 'running': ns.filter(Running='Y').count()}})
+  hms = host_machine.objects.all().order_by('Host_name')
+  ret_info = []
+  for hm in hms:
+    ns = node.objects.filter(Host_Machine=hm).order_by('Name')
+    ret_info.append({'hm_name': hm.Host_name,
+                     'nodes': ns,
+                     'total': ns.count(),
+                     'running': ns.filter(Running='Y').count(),
+                     })
+  myLogging.logger.info("ret_info: %s" % ret_info)
+  return render(request, 'Physical.html', {'hms': ret_info,
+                                           })
 
 
+@myLogging.log('views')
 @csrf_exempt
 def display(request):
-  selected_room = ''
-  if request.method == 'POST':
-    selected_room = request.POST.get('room')
-  if not selected_room:
-    selected_room = 'EQP'
-  items = []
-  items2 = []
-  ds = display_machine.objects.filter(Host_name__startswith=selected_room.lower())
-  for d in ds:
-    x_servers = X_server.objects.filter(Display_machine=d)
-    ds_list = {'n': d, 'x': []}
-    for x_server in x_servers:
-      ns = node.objects.filter(X_server=x_server)
-      for n in ns:
-        conflicts = map(lambda x: x.Name if x!=n else '', ns)
-        print 'conflicts: %s' % conflicts
-        items.append({'n': n, 'x': x_server, 'conflict': ' '.join(conflicts)})
-      if not ns.count():
-        items.append({'n': None, 'x': x_server})
-      ds_list['x'].append({'x': x_server, 'ns': ns})
-    items2.append(ds_list)
-  print "selected_room: %s" % selected_room
-  print "ds: %s" % ds
-  print "items: %s" % items
-  return render(request, 'Display.html', {'selected': selected_room,
-                                          'items': items,
+  room_infos = []
+  ds = display_machine.objects.all()
+  for room in rooms:
+    ds_a_room = ds.filter(Host_name__startswith=room.lower()).order_by('Host_name')
+    a_room = []
+    for d in ds_a_room:
+      x_servers = X_server.objects.filter(Display_machine=d).order_by('Tty')
+      a_dm = []
+      for x_server in x_servers:
+        ns = node.objects.filter(X_server=x_server).order_by('Name')
+        #print "x:[%s %d], n:[%s]" % (x_server.Host, x_server.Tty, map(lambda x: x.Name, ns))
+        if not ns.count():
+          a_dm.append({'ns': '', 'x': x_server, 'conflict': 'N'})
+        elif ns.count() == 1:
+          a_dm.append({'ns': ns[0].Name, 'x': x_server, 'conflict': 'N'})
+        else:
+          a_dm.append({'ns': ' '.join(map(lambda x: x.Name, ns)), 'x': x_server, 'conflict': 'Y'})
+      a_room.append({'n': d, 'xs': a_dm})
+    room_infos.append({'room': room, 'ds': a_room})
+  #print "ds: %s" % ds
+  myLogging.logger.info("room_infos: %s" % room_infos)
+  return render(request, 'Display.html', {'room_infos': room_infos,
                                           'rooms': ROOM_MAPPING,
-                                          'items2': items2,
                                           })
+
+
+@myLogging.log('views')
+def change_x11_fw(vm, n, x):
+  err = 'Successful'
+  cmd = '''
+  cat << EOF > /etc/xinetd.d/x11-fw
+service x11-fw
+{
+ disable = no
+ type = UNLISTED
+ socket_type = stream
+ protocol = tcp
+ wait = no
+ user = root
+ bind = 0.0.0.0
+ port = 6000
+ only_from = 0.0.0.0
+ redirect = %s %d
+}
+EOF
+  ''' % (x.Host, x.Port)
+  vm.init_ssh()
+  vm.execute_cmd(cmd, redirect_stderr=False)
+  stderr = vm.stdout.read()
+  if stderr:
+    vm.close_ssh()
+    err = "Write x11-fw error!"
+    myLogging.logger.error(err)
+    return err
+  vm.execute_cmd('service xinetd reload', redirect_stderr=False)
+  myLogging.logger.info(vm.stdout.read())
+  stderr = vm.stderr.read()
+  if stderr:
+    vm.close_ssh()
+    err = "Reload x11-fw error!"
+    myLogging.logger.error(err)
+    return err
+  vm.close_ssh()
+  ret = vm.set_x_server(x)
+  if not ret:
+    err = "Set x server error!"
+    myLogging.logger.error(err)
+  return err
+
+
+@myLogging.log('views')
+@csrf_exempt
+def submit_display(request):
+  ret = 'Failed'
+  ret_cx =  []
+  changed_xs = []
+  if request.method == 'POST':
+    try:
+      host = request.POST.get('host').strip()
+      nodes = request.POST.get('ns').strip().split()
+      nodes.sort()
+      nodes =filter(lambda y: y, nodes)
+      tty = int(request.POST.get('tty').strip().replace('TTY', ''))
+      myLogging.logger.info("POST:\nhost: %s\nnodes: %s\ntty: %s" % (host, nodes, tty))
+      x = X_server.objects.get(Host=host, Tty=tty)
+      ns = node.objects.filter(X_server=x)
+      nodes2 = map(lambda y: y.Name, ns)
+      nodes2.sort()
+      if cmp(nodes, nodes2) != 0:
+        for n in [y for y in nodes if y not in nodes2]:
+          vm = virtMachine.VirMachine(n)
+          old_x = vm.get_vm_db_inst().X_server
+          ret = change_x11_fw(vm, n, x)
+          if ret != "Successful":
+            break
+          changed_xs.append(old_x)
+        if changed_xs:
+          changed_xs.append(x)
+        for cx in changed_xs:
+          cx_ns = ' '.join(map(lambda y: y.Name, node.objects.filter(X_server=cx)))
+          ret_cx.append({'host': cx.Host,
+                         'tty': cx.Tty,
+                         'ns': cx_ns,
+                         'c': 'Y' if cx_ns.count(' ') else 'N',
+                         })
+        if not changed_xs:
+          ret = 'Not allowed to remove!'
+      else:
+        ret = 'No change!'
+    except socket.gaierror:
+      myLogging.logger.exception('getaddrinfo failed in submit display!')
+      ret = 'Getaddrinfo failed'
+    except Exception, e:
+      myLogging.logger.exception('Exception in submit display!')
+      if e.message:
+        ret = e.message
+      else:
+        ret = e.__class__.__name__
+  myLogging.logger.info('ret: %s' % ret)
+  myLogging.logger.info('cx: %s' % ret_cx)
+  return JsonResponse({'ret': ret, 'cx': ret_cx})
