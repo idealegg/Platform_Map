@@ -6,6 +6,8 @@ import myLogging
 
 
 class Machine(object):
+  class_connect_timeout = 2.0
+
   def __init__(self, login):
     super(Machine, self).__init__()
     self.PING_CMD = 'ping -c 3 -W 2 %s'
@@ -30,9 +32,17 @@ class Machine(object):
     self.sftp = None
     self.hostname = ''
     self.IP = ''
+    self.connect_timeout = None
 
   def set_user(self, user):
     self.user = user
+
+  def set_connect_timeout(self, timeout):
+    self.connect_timeout = timeout
+
+  @classmethod
+  def set_class_connect_timeout(cls, timeout):
+    Machine.class_connect_timeout = timeout
 
   @myLogging.log("Machine")
   def init_ssh(self):
@@ -40,8 +50,13 @@ class Machine(object):
       myLogging.logger.info( "Init ssh client [%s@%s:%d]." % (self.user, self.host, self.port))
       self.ssh_client = ssh.SSHClient()
       self.ssh_client.set_missing_host_key_policy(ssh.AutoAddPolicy())
-      myLogging.logger.info( "Begin to connect to [%s@%s:%d]." % (self.user, self.host, self.port))
-      self.ssh_client.connect(self.host, port=self.port, username=self.user, password=self.passwd)
+      myLogging.logger.info( "Begin to connect to [%s@%s:%d] timeout:[%f]." %
+                             (self.user, self.host, self.port, self.connect_timeout or Machine.class_connect_timeout))
+      self.ssh_client.connect(self.host,
+                              port=self.port,
+                              username=self.user,
+                              password=self.passwd,
+                              timeout=self.connect_timeout or Machine.class_connect_timeout)
     else:
       myLogging.logger.debug("Init ssh client again [%s@%s:%d]." % (self.user, self.host, self.port))
 

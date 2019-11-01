@@ -45,7 +45,8 @@ class SQLOperator(object):
       return None
     ns = self.__filter__(**filters)
     if ns.count():
-      return ns[0]
+      self.db_inst = ns[0]
+      return self.db_inst
     else:
       return None
 

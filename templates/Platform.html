@@ -22,7 +22,7 @@
 </head>
 <body>
     <div >
-        <div class="uk-flex-item-none x-sidebar-left" style="margin:5px;position:fixed;top:0;bottom:0">
+        <div class="uk-flex-item-none x-sidebar-left" style="margin:5px;position:fixed;top:0;bottom:0;overflow-y: scroll">
             <div class="uk-float-right" style="padding-top:5px">
                 <a href="#0" onclick="expandWikiNode($('#x-wiki-index>div>i'), true)" style="margin-left:5px">
                     <i class="uk-icon-expand"></i>
@@ -125,8 +125,11 @@
                             <!--<td class='itemvalue'>{{item.IP}}</td>-->
                             <!--<td class='itemvalue'>{{item.Interface}}</td>-->
                             <td class='itemvalue'>{{item.Thalix}}</td>
-                            <td class='itemvalue'>{{item.X_server.Host}}&nbsp;{{item.X_server.Tty}}</td>
-                            <!--<td class='itemvalue'>{{item.Display}}</td>-->
+                            {% if item.X_server  %}
+                            <td class='itemvalue'>{{item.X_server.Host}}&nbsp;tty{{item.X_server.Tty}}</td>
+                            {% else %}
+                            <td class='itemvalue'>{{item.Display}}</td>
+                            {% endif %}
                             <td class='itemvalue'>{{item.Config}}</td>
                             <td class='itemvalue'>{{item.CSCI}}</td>
                             </tr>

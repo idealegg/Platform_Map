@@ -30,6 +30,10 @@ class Conf:
                     'remote_cmd_timeout_seconds': 3,
                     'remote_cmd_timeout_times': 2,
                     'collect_interval': 3600,
+                    'connect_timeout': 10.0,
+                    'skip_first_display_collect': 'F',
+                    'wait_vm_start_ping_time': 30.0,
+                    'wait_vm_start_sleep_time': 10.0,
                     'cmd_list': ['uname -a',
                                  'cat /etc/thalix-release',
                                  'ifconfig -a',
@@ -51,7 +55,7 @@ class Conf:
       return False
     self.conf_list.append(self.main_conf)
     # -- check conf count
-    for site_dir in os.listdir(self.conf_dir):
+    for site_dir in [x for x in os.listdir(self.conf_dir) if x != 'common_config']:
       abs_dir = os.path.join(self.conf_dir, site_dir)
       if os.path.isdir(abs_dir):
         site_f = os.path.join(abs_dir, "%s.conf" % site_dir)
@@ -143,6 +147,9 @@ class Conf:
 
   def get_para_int(self, parameter):
     return int(self.config['parameter'][parameter])
+
+  def get_para_float(self, parameter):
+    return float(self.config['parameter'][parameter])
 
   def get_cmd_list(self):
     return self.config['parameter']['cmd_list']

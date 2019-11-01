@@ -206,6 +206,7 @@ function expandWikiNode(icons, rec) {
         var tdPreText = $(t).text();
         var width = $(t).width();
         var roll_back = false;
+        var node_inf = null;
         //var padding = $(t).css('padding-left');
         //给td设置宽度和给input设置宽度并赋值
         $(t).html("<input type='text'>").find("input").width(width).val(tdPreText.trim()).focus();
@@ -244,6 +245,7 @@ function expandWikiNode(icons, rec) {
                        // $b1.attr('disabled', false);
                         if (res['ret'] != 'Successful'){
                             tdDom.text(tdPreText);
+                            tdDom.attr('title', tdPreText);
                         }
                         if (res['cx'].length > 0 ){
                             for(var i = 0;i < res['cx'].length;++i ){
@@ -255,9 +257,13 @@ function expandWikiNode(icons, rec) {
                                     }).parent();
                                 $tty_info.attr('conflict', cx['c']);
                                 if (cx['ns'] === ''){
-                                    $tty_info.find('.node_text').html('&nbsp;');
+                                    node_inf = $tty_info.find('.node_text');
+                                    node_inf.html('&nbsp;');
+                                    node_inf.attr('title', '');
                                 }else{
-                                    $tty_info.find('.node_text').text(cx['ns']);
+                                    node_inf = $tty_info.find('.node_text');
+                                    node_inf.text(cx['ns']);
+                                    node_inf.attr('title', cx['ns']);
                                 }
                             }
                         }
@@ -276,6 +282,7 @@ function expandWikiNode(icons, rec) {
                             $err.text('Failed');
                         }
                         tdDom.text(tdPreText);
+                        tdDom.attr('title', tdPreText);
                     }
                 });
             }
@@ -284,6 +291,7 @@ function expandWikiNode(icons, rec) {
                 tdDom.text(tdPreText);
             }else{
                 tdDom.text(newText);
+                tdDom.attr('title', newText);
             }
         });
     }

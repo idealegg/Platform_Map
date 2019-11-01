@@ -126,7 +126,7 @@ STATICFILES_DIRS = (
 )
 
 # logging
-
-with open(os.path.join(BASE_DIR, 'conf', 'logging.json')) as logging_json:
-    j_str = logging_json.read().replace('log/', 'log/server_')
-    LOGGING = json.loads(j_str)
+if 'PLATFORM_MAP_SERVER' in os.environ:
+    with open(os.path.join(BASE_DIR, 'conf', 'logging.json')) as logging_json:
+        j_str = logging_json.read().replace('log/', 'log/server_')
+        LOGGING = json.loads(j_str)

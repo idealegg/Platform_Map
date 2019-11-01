@@ -23,7 +23,6 @@ class SQLSiteConf(SQLOperator):
     SQLSiteConf.site_conf_ids.add(self.get_id())
 
   @classmethod
-  @myLogging.log('SQLSiteConf')
   def get_conf_md5(cls, conf_path):
     h = ''
     with open(conf_path) as fd:
