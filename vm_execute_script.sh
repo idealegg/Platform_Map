@@ -1,13 +1,12 @@
 #!/usr/bin/expect
-spawn ssh -l system jnsev01v011
 set timeout 3
 set done 1
 set nologined 1
 set timeout_case 0
-
-while ($done) {
+spawn ssh -o ConnectTimeout=10 -l system whsev01v012
+while (${done}) {
   expect {
-    " login:" { if ($nologined) {
+    " login:" { if (${nologined}) {
                    send "system\n"
                    }
     }
@@ -40,7 +39,7 @@ send "cat /etc/xinetd.d/x11-fw\n"
           exit
         }
         timeout {
-              if ($timeout_case < 0) {
+              if (${timeout_case} < 0) {
                 send "\n" }
               else{
                   puts stderr "Login time out...\n"

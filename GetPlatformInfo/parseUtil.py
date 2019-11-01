@@ -4,9 +4,11 @@ import re
 import myLogging
 
 UNAME_PATTERN = re.compile('^(\w+)\s+([^\s]+)\s+([^\s]+)\s+')
-IFCONFIG_P1 = re.compile('^([^\s]+).*HWaddr\s+([\w:]+)')
+IFCONFIG_P1 = re.compile('^([^\s:]+).*?(HWaddr\s+([\w:]+))?$')
 IFCONFIG_P2 = re.compile('^\s+inet addr:([\d.]+)\s+Bcast:([\d.]+)\s+Mask:([\d.]+)')
-PING = re.compile('(\d+)(\.\d+)?% packet loss')
+IFCONFIG_P3 = re.compile('^\s+ether\s+([\w:]+)')
+IFCONFIG_P4 = re.compile('^\s+inet\s+([\d.]+)\s+netmask\s+([\d.]+)\s+broadcast\s+([\d.]+)')
+PING = re.compile('\s+(\d+)(\.\d+)?% packet loss')
 
 conf = None
 
@@ -20,16 +22,16 @@ def set_conf(c):
 def gen_script(cmd_list, vm_name, is_ssh=True):
   vm = vm_name
   tmp_script = []
+  ssh_cmd = 'ssh -o ConnectTimeout=%d -l system' % int(conf.get_para_float('connect_timeout'))
   tmp_script.append('''#!/usr/bin/expect
-spawn %s %s
 set timeout %d
 set done 1
 set nologined 1
 set timeout_case 0
-
-while ($done) {
+spawn %s %s
+while (${done}) {
   expect {
-    " login:" { if ($nologined) {
+    " login:" { if (${nologined}) {
                    send "system\\n"
                    }
     }
@@ -42,7 +44,7 @@ while ($done) {
     "system@" {
           set done 0
           send "\\n"
-''' % (('ssh -l system' if is_ssh else 'virsh console'), vm, conf.get_para_int('remote_cmd_timeout_seconds')))
+''' % (conf.get_para_int('remote_cmd_timeout_seconds'), (ssh_cmd if is_ssh else 'virsh console'), vm))
   for cmd in cmd_list:
     tmp_script.append('expect "system@"\nsend "%s\\n"\n' % (cmd))
   tmp_script.append('''          expect "system@"
@@ -53,7 +55,7 @@ while ($done) {
           exit
         }
         timeout {
-              if ($timeout_case < %d) {
+              if (${timeout_case} < %d) {
                 send "\\n" }
               else{
                   puts stderr "Login time out...\\n"
@@ -102,22 +104,25 @@ def parse_output(output, vm_class, prompt='system@'):
 @myLogging.log("parseUtil")
 def parse_cmd(cmd, cmd_out, vm_ops_name=''):
   myLogging.logger.info( "cmd2: %s" % cmd)
+  myLogging.logger.debug("cmd_out: %s" % cmd_out)
+  myLogging.logger.debug("vm_ops_name: %s" % vm_ops_name)
+  ret1 = {}
   if cmd == 'uname -a':
     res = re.search(UNAME_PATTERN, cmd_out[0])
     if res:
-      return {'Os': res.group(1),
+      ret1 =  {'Os': res.group(1),
                'OPS_Name': res.group(2),
                'Structure': res.group(3),
               }
-    return None
-  if cmd == 'cat /etc/thalix-release':
-    return {'Thalix': cmd_out[0].strip()}
-  if cmd == 'ifconfig -a':
+  elif cmd == 'cat /etc/thalix-release':
+    ret1 = {'Thalix': cmd_out[0].strip()}
+  elif cmd == 'ifconfig -a':
     cur_interface = ''
     interface = {}
     ret = []
     ip = []
     for line in cmd_out:
+      line = line.rstrip()
       res = re.search(IFCONFIG_P1, line)
       if res:
         if cur_interface:
@@ -130,7 +135,7 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
             ip.append(interface['addr'])
         interface = {}
         interface['Name'] = res.group(1)
-        interface['HWaddr'] = res.group(2)
+        interface['HWaddr'] = res.group(3)
         cur_interface = interface['Name']
       else:
         res = re.search(IFCONFIG_P2, line)
@@ -138,6 +143,16 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
           interface['addr'] = res.group(1)
           interface['Bcast'] = res.group(2)
           interface['Mask'] = res.group(3)
+        else:
+          res = re.search(IFCONFIG_P3, line)
+          if res:
+            interface['HWaddr'] = res.group(1)
+          else:
+            res = re.search(IFCONFIG_P4, line)
+            if res:
+              interface['addr'] = res.group(1)
+              interface['Bcast'] = res.group(3)
+              interface['Mask'] = res.group(2)
     if cur_interface:
       #ret[cur_interface] = interface
       ret.append("%s\n\tHWaddr:%s" % (cur_interface, interface['HWaddr']))
@@ -146,17 +161,20 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
         ret.append("\n\tBcast:%s" % (interface['Bcast']))
         ret.append("\n\tMask:%s" % (interface['Mask']))
         ip.append(interface['addr'])
-    return {'Interface': ret, 'IP': ' '.join(ip)}
-  if cmd == 'vers':
+    ret1 = {'Interface': ret, 'IP': ' '.join(ip)}
+  elif cmd == 'vers':
     ret = {}
+    avoid_color = ''
     for line in cmd_out:
       tmp = line.split('=')
       if len(tmp) > 1:
         ret[tmp[0]] = tmp[1]
+        if tmp[0].find('RUN_CONFIG_') != -1:
+          avoid_color = tmp[1]
     if 'RUN_CONFIG_VERS' not in ret:
-      ret['RUN_CONFIG_VERS'] = ''
-    return {'Config': ret['RUN_CONFIG_VERS']}
-  if cmd == 'message':
+      ret['RUN_CONFIG_VERS'] = avoid_color
+    ret1 = {'Config': ret['RUN_CONFIG_VERS']}
+  elif cmd == 'message':
     csci = []
     if vm_ops_name:
       for line in cmd_out:
@@ -164,23 +182,23 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
         if len(tmp) > 1:
           if vm_ops_name in tmp:
             csci.append(re.sub("\d+", '', tmp[0]))  # 删除数字
-    return {'CSCI': " ".join(csci)}
-  if cmd.startswith('ping -c 3 -W 2'):
+    ret1 = {'CSCI': " ".join(csci)}
+  elif cmd.startswith('ping -c'):
+    ret1 = {'Ping_reachable': 'N'}
     for line in cmd_out:
-      myLogging.logger.info( line)
+      myLogging.logger.debug( line)
       res = re.search(PING, line)
-      myLogging.logger.info( res)
+      myLogging.logger.debug( res)
       if res:
         myLogging.logger.info( res.group(1))
         if int(res.group(1)) == 0:
-          return {'Ping_reachable': 'Y'}
-    return {'Ping_reachable': 'N'}
-  if cmd.startswith('virsh s'):
+          ret1 = {'Ping_reachable': 'Y'}
+  elif cmd.startswith('virsh s'):
+    ret1 = {'Controlled': 'Y'}
     for line in cmd_out:
       if line.find("error:") != -1:
-        return {'Controlled': 'N'}
-    return {'Controlled': 'Y'}
-  if cmd == 'ps -ef|grep Xorg':
+        ret1 = {'Controlled': 'N'}
+  elif cmd == 'ps -ef|grep Xorg':
     x_servers = []
     for line in cmd_out:
       fields = re.split('\s+', line)
@@ -191,12 +209,13 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
           'Port': 6000 + int(fields[8].replace(':', ''))
         }
         x_servers.append(x_server)
-    return {'x_server': x_servers}
-  if cmd == 'cat /etc/xinetd.d/x11-fw':
+    ret1 = {'x_server': x_servers}
+  elif cmd == 'cat /etc/xinetd.d/x11-fw':
     x11_fw = {}
     for line in cmd_out:
       fields = re.split('\s*=\s*', line.strip())
       if len(fields) > 1:
         x11_fw[fields[0].strip()] = fields[1].strip()
-    return {'Display': x11_fw['redirect']} if x11_fw.has_key('redirect') else {}
-  return {}
+    ret1 = {'Display': x11_fw['redirect']} if x11_fw.has_key('redirect') else {}
+  myLogging.logger.debug('ret1: %s' % ret1)
+  return ret1

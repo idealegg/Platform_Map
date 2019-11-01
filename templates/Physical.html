@@ -66,7 +66,11 @@
                         <td class='itemvalue'>{{item.Id_in_host}}</td>
                         <td class='itemvalue'>{{item.Running}}</td>
                         <td class='itemvalue'>{{item.Thalix}}</td>
+                        {% if item.X_server  %}
+                        <td class='itemvalue'>{{item.X_server.Host}}&nbsp;tty{{item.X_server.Tty}}</td>
+                        {% else %}
                         <td class='itemvalue'>{{item.Display}}</td>
+                        {% endif %}
                         <td class='itemvalue'>{{item.Config}}</td>
                         <td class='itemvalue'>{{item.CSCI}}</td>
                         </tr>

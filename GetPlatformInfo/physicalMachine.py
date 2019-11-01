@@ -43,6 +43,7 @@ class HostMachine(Machine, SQLOperator):
       return False
 
   def start_vm(self, vm):
+
     cmd = self.START_VM % vm.vm_state['Name']
     self.execute_cmd(cmd)
     tmp = parseUtil.parse_cmd(cmd, self.stdout.read().split('\n'))
@@ -53,6 +54,15 @@ class HostMachine(Machine, SQLOperator):
     self.execute_cmd(cmd)
     tmp = parseUtil.parse_cmd(cmd, self.stdout.read().split('\n'))
     return tmp['Controlled'] == 'Y'
+
+  def wait_vm_start(self, vm, times):
+    cmd = "ping -c 1 -W 1 %s" % vm.vm_state['Name']
+    while times > 0:
+      self.execute_cmd(cmd)
+      tmp = parseUtil.parse_cmd(cmd, self.stdout.read().split('\n'))
+      if tmp['Ping_reachable'] == 'Y':
+        return True
+    return False
 
   def save(self):
     self.db_inst = host_machine(**self.attr)

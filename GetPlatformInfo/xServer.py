@@ -28,7 +28,8 @@ class XServer(Machine, SQLOperator):
                  }
 
   @myLogging.log('XServer')
-  def get_x_servers(self):
+  def get_x_servers(self, timeout=None):
+    self.set_connect_timeout(timeout)
     self.init_ssh()
     sql_dm = SQLDisplayMachine(self.login)
     sql_dm.set_ip(self.get_ip())
@@ -42,7 +43,7 @@ class XServer(Machine, SQLOperator):
     self.execute_cmd('ps -ef|grep Xorg')
     for line in self.stdout:
       fields = re.split('\s+', line)
-      if fields[7] == '/usr/bin/Xorg':
+      if fields[7] == '/usr/bin/Xorg' and fields[5].find('tty') != -1:
         current_tty = int(fields[5].replace('tty', ''))
         self.attr.update({
           'Host': self.get_hostname(),
