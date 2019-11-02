@@ -13,7 +13,7 @@ import GetPlatformInfo.myLogging as myLogging
 import GetPlatformInfo.virtMachine as virtMachine
 
 from django.views.decorators.csrf import csrf_exempt
-from Display_Platform_Info.models import node, host_machine, display_machine, X_server, site_conf
+from Display_Platform_Info.models import node, host_machine, display_machine, X_server, site_conf, run_state
 import Display_Platform_Info.models
 import Platform_Map.settings
 import os
@@ -158,6 +158,9 @@ def platform(request):
       ret_info.append(a_site)
     else:
       orphan_site.update(a_site)
+  if 'pfs' in orphan_site:
+    if len(orphan_site['pfs']):
+      orphan_site['pfs'][0]['nodes'].union(node.objects.filter(Platform__isnull=True))
   ret_info.append(orphan_site)
   myLogging.logger.info("ret: %s" % ret_info)
   return render(request, 'Platform.html', {'sites': ret_info,
@@ -336,3 +339,14 @@ def submit_display(request):
   myLogging.logger.info('ret: %s' % ret)
   myLogging.logger.info('cx: %s' % ret_cx)
   return JsonResponse({'ret': ret, 'cx': ret_cx})
+
+
+@myLogging.log('views')
+@csrf_exempt
+def backend(request):
+  rss = run_state.objects.all().order_by('-Counter', 'Begin')
+  myLogging.logger.info("rss: %s" % rss)
+  return render(request, 'Backend.html', {'rss': rss,
+                                          })
+
+

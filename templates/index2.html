@@ -32,21 +32,8 @@
 <body>
     <h1>Best Platform</h1>
     <hr>
-    <ul>
-        <li>
-            <a href="/platform/" ><span>Platform node info</span></a>
-        </li>
-        <li>
-            <a href="/physical/" ><span>Physical machine info</span></a>
-        </li>
-        <li>
-            <a href="/display/" ><span>Display machine info</span></a>
-        </li>
-        <li>
-            <a href="/backend/" ><span>Collect platform info</span></a>
-        </li>
-    </ul>
+    <a href="/generate/" onclick="document.getElementById('res').innerHTML='Generating...'"><span>生成</span></a>
     <hr>
-
+    <div id="res">{{ result }}</div>
 </body>
 </html>

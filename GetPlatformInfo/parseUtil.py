@@ -43,7 +43,6 @@ while (${done}) {
                   }
     "system@" {
           set done 0
-          send "\\n"
 ''' % (conf.get_para_int('remote_cmd_timeout_seconds'), (ssh_cmd if is_ssh else 'virsh console'), vm))
   for cmd in cmd_list:
     tmp_script.append('expect "system@"\nsend "%s\\n"\n' % (cmd))

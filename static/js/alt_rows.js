@@ -296,3 +296,14 @@ function expandWikiNode(icons, rec) {
         });
     }
 
+    function altBackendRow() {
+        console.log(altBackendRow);
+        var $tbody = $('tbody');
+        var $td = $tbody.find('td').filter(function(x) {
+                                        return $(this).text() === 'Collecting';
+                                    });
+        if($td){
+            var $tr = $td.parent();
+            $tr.css('background-color', '#ff0000');
+        }
+    }
