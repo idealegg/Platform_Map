@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:image/ico;base64,aWNv">
+    <link rel="stylesheet" href="../static/css/general.css" />
+    <script type="text/javascript" src="../static/js/alt_rows.js"></script>
+    <script type="text/javascript" src="../static/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript">
+        window.onload = function(){
+          console.log("onload");
+          altBackendRow();
+          };
+    </script>
+    <title>Backend collect info</title>
+</head>
+<body>
+    <div >
+        <br>
+        <h2 style="padding: 10px">Backend collect info</h2>
+        <hr>
+                    <table class="altrowstable" style="padding:40px;margin: 20px">
+                    <thead>
+                    <tr>
+                        <th>Site</th>
+                        <th>Platform</th>
+                        <th>Begin</th>
+                        <th>End</th>
+                        <th>State</th>
+                        <th>Counter</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {%  for item in rss %}
+                        <tr id={{ forloop.counter }}>
+                        <td class='itemvalue'>{{item.Current_platform.Site}}</td>
+                        <td class='itemvalue'>{{item.Current_platform.Platform}}</td>
+                        <td class='itemvalue'>{{item.Begin}}</td>
+                        <td class='itemvalue'>{{item.End}}</td>
+                        <td class='itemvalue'>{{item.State}}</td>
+                        <td class='itemvalue'>{{item.Counter}}</td>
+                        </tr>
+                        {%  endfor %}
+                    </tbody>
+                    </table>
+
+    </div>
+</body>
+</html>

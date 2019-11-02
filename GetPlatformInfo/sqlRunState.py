@@ -10,18 +10,19 @@ class SQLRunState(SQLOperator):
   run_state_ids = set()
   current_counter = 0
 
-  def __init__(self, is_begin, pf):
+  def __init__(self, begin, pf):
     super(SQLRunState, self).__init__()
     now = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
     self.platform = pf
     self.attr = {'Current_platform': pf,
                  }
     self.set_filter_function(run_state.objects.filter)
-    if is_begin:
+    if not begin:
       self.attr['Begin'] = now
       self.attr['End'] = None
       self.attr['State'] = "Collecting"
     else:
+      self.attr['Begin'] = begin
       self.attr['End'] = now
       self.attr['State'] = "Completed"
 

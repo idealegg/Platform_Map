@@ -16,11 +16,12 @@ import os
 import time
 import shutil
 from django.db import connections
+from django.db.models import F
 
 
 class RunCollect:
   def __init__(self):
-    self.conf = confUtil.Conf()
+    self.conf = None
     self.db_path = Platform_Map.settings.DATABASES['default']['NAME']
     self.vm_list = []
     self.vm = None
@@ -28,6 +29,9 @@ class RunCollect:
     self.node_ids = set()
     self.pm_login_map = {}
     self.first_run = True
+    self.ummodified_pfs = []
+    self.cnu = self.compute_next_run()
+    self.current_rs = None
 
   @myLogging.log('RunCollect')
   def init_data(self):
@@ -36,7 +40,10 @@ class RunCollect:
       #with open('.'.join([self.db_path, time.strftime('%y%m%d%H%M', time.localtime())]), 'wb') as fw:
       #  with open(self.db_path, 'rb') as fr:
       #    fw.write(fr.read())
-      shutil.copyfile(self.db_path, '.'.join([self.db_path, time.strftime('%y%m%d%H%M%S', time.localtime())]))
+      if not self.first_run:
+        shutil.copyfile(self.db_path, '.'.join([self.db_path, time.strftime('%y%m%d%H%M%S', time.localtime())]))
+      else:
+        shutil.copyfile(self.db_path, '.'.join([self.db_path, '.last_ver']))
 
     # Truncate tables
     #platform.objects.all().delete()
@@ -159,15 +166,12 @@ class RunCollect:
     self.node_ids = set()
     self.vm_list = []
     sqlRunState.SQLRunState.run_state_ids = set()
-    # Get last completed_pfs
-    changed_site = sqlSiteConf.SQLSiteConf.get_all_conf_change(
-        filter(lambda x: x != self.conf.main_conf, self.conf.conf_list))
-    if changed_site:
-      completed_pfs = []
-      rss = run_state.objects.all()
-      if rss.count():
-        rss.update(Counter=0)
-      sqlRunState.SQLRunState.current_counter = 1
+    if self.ummodified_pfs:
+      completed_pfs = map(lambda x: platform.objects.get(Site=x[0], Platform=x[1]), self.ummodified_pfs)
+      rss = run_state.objects.filter(id__in=map(lambda x: x.id, completed_pfs))
+      rss.update(Counter=F('Counter')+1)
+      sqlRunState.SQLRunState.run_state_ids.update(map(lambda x: x.id, rss))
+      sqlRunState.SQLRunState.current_counter = rss[0].Counter
     else:
       completed_pfs = sqlRunState.SQLRunState.get_complete_pfs()
     myLogging.logger.info("Current run state counter: %d" % sqlRunState.SQLRunState.current_counter)
@@ -190,7 +194,8 @@ class RunCollect:
           self.node_ids.update(map(lambda x: x.id, node.objects.filter(Platform=current_pf)))
           continue
         # Update run state
-        sqlRunState.SQLRunState(is_begin=True, pf=current_pf).save()
+        self.current_rs = sqlRunState.SQLRunState(begin=None, pf=current_pf)
+        self.current_rs.save()
         for c_node in self.conf.get_site_platform_nodelist(site, pf):
           self.vm = None
           self.pm = None
@@ -243,10 +248,11 @@ class RunCollect:
             self.vm.save()
             self.node_ids.add(self.vm.get_id())
           self.close_pm_vm()
-        sqlRunState.SQLRunState(is_begin=False, pf=current_pf).save()
+        sqlRunState.SQLRunState(begin=self.current_rs.attr['Begin'], pf=current_pf).save()
     # Check orphan list.
     current_pf = platform.objects.get(Site=sqlOperator.SQLOperator.ORPHAN)
-    sqlRunState.SQLRunState(is_begin=True, pf=current_pf).save()
+    self.current_rs = sqlRunState.SQLRunState(begin=None, pf=current_pf)
+    self.current_rs.save()
     for vm_state in (x for x in filter(lambda x: x['Name'] not in self.conf.get_all_nodes(), self.vm_list)):
       myLogging.logger.info("to check orphan node: %s" % vm_state)
       self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'], True)
@@ -269,7 +275,7 @@ class RunCollect:
       if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():
         self.pm.stop_vm(self.vm)
       self.close_pm_vm()
-    sqlRunState.SQLRunState(is_begin=False, pf=current_pf).save()
+    sqlRunState.SQLRunState(begin=self.current_rs.attr['Begin'], pf=current_pf).save()
     myLogging.logger.info("nodes id all: [%s]" % map(lambda x: x.id, node.objects.all()))
     myLogging.logger.info("nodes id rev: [%s]" % list(self.node_ids))
     myLogging.logger.info("run_state id all: [%s]" % map(lambda x: x.id, run_state.objects.all()))
@@ -296,20 +302,52 @@ class RunCollect:
   def mapping_platform_node(self):
     pass
 
+  def compute_next_run(self):
+    times = int(self.conf.get_para_int('collect_interval') / self.conf.get_para_float('check_conf_interval'))
+    retry = times
+    while retry > 0:
+      r = {'timeout': False,
+           'new_conf': None}
+      sent = False
+      new_conf = confUtil.Conf()
+      new_conf.read_conf()
+      com_ret = confUtil.Conf.compare_conf(self.conf, new_conf)
+      if com_ret['ret']:
+        if com_ret['mod']:
+          self.ummodified_pfs = com_ret['same']
+          r['new_conf'] = new_conf
+          sent = True
+          n = yield r
+          times = int(self.conf.get_para_int('collect_interval') / self.conf.get_para_float('check_conf_interval'))
+          retry = times
+      if not sent:
+        time.sleep(self.conf.get_para_float('check_conf_interval'))
+        retry -= 1
+    n = yield {'timeout': True,
+               'new_conf': None}
+
   @myLogging.log('RunCollect')
   def run_collect(self):
     #myLogging.setup_logging()
     try:
-      if not self.conf.load_conf():
-        return False
-      parseUtil.set_conf(self.conf)
-      myLogging.logger.info(self.conf.config)
-      myLogging.logger.info("Set connect timeout to [%f]" % self.conf.get_para_float('connect_timeout'))
-      machine.Machine.set_class_connect_timeout(self.conf.get_para_float('connect_timeout'))
-      self.init_data()
-      collect_interval = self.conf.get_para_int('collect_interval')
       while True:
+        re_load_conf = False
+        if not self.first_run:
+          cnr_ret = self.cnu.send(None)
+          re_load_conf = not cnr_ret['timeout']
+        if self.first_run or re_load_conf:
+          self.conf = confUtil.Conf()
+          if not self.conf.load_conf():
+            return False
+          parseUtil.set_conf(self.conf)
+          myLogging.logger.info(self.conf.config)
+          myLogging.logger.info("Set connect timeout to [%f]" % self.conf.get_para_float('connect_timeout'))
+          machine.Machine.set_class_connect_timeout(self.conf.get_para_float('connect_timeout'))
         start_time = time.time()
+        # Get last completed_pfs
+        #self.changed_site = sqlSiteConf.SQLSiteConf.get_all_conf_change(
+        #  filter(lambda x: x != self.conf.main_conf, self.conf.conf_list))
+        self.init_data()
         if not self.conf.get_para_bool('skip_first_display_collect') or not self.first_run:
           self.collect_display_info()
         self.collect_vm_info()
@@ -317,12 +355,7 @@ class RunCollect:
         connections.close_all()
         end_time = time.time()
         collect_time = int(end_time - start_time)
-        sleep_time = collect_interval - collect_time
-        if sleep_time < 0:
-          sleep_time = 0
         myLogging.logger.info("Last collecting cost %d seconds!" % collect_time)
-        myLogging.logger.info("Sleep %d seconds for next collecting!" % sleep_time)
-        time.sleep(sleep_time)
         self.first_run = False
     except Exception:
       myLogging.logger.exception("Exception in run_collect!")

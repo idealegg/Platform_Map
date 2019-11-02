@@ -19,7 +19,8 @@ class Conf:
     self.parser = ConfigParser.ConfigParser()
     self.conf_list = []
     self.nodes = []
-    self.config ={ 'site': {},
+    self.config = {}
+    self.default_config ={ 'site': {},
                    'host': {},
                    'display': {},
                    'parameter': {
@@ -34,6 +35,7 @@ class Conf:
                     'skip_first_display_collect': 'F',
                     'wait_vm_start_ping_time': 30.0,
                     'wait_vm_start_sleep_time': 10.0,
+                    'check_conf_interval': 5.0,
                     'cmd_list': ['uname -a',
                                  'cat /etc/thalix-release',
                                  'ifconfig -a',
@@ -45,7 +47,8 @@ class Conf:
                   }
 
   @myLogging.log('Conf')
-  def load_conf(self):
+  def read_conf(self):
+    self.config = self.default_config
     # -- check path
     if not os.path.isdir(self.conf_dir):
       myLogging.logger.error("Conf dir %s does not exist!" % self.conf_dir)
@@ -68,6 +71,12 @@ class Conf:
       return False
     # -- check host
     self.parser.read(map(lambda x: os.path.join(self.conf_dir, x), self.conf_list))
+    return True
+
+  @myLogging.log('Conf')
+  def load_conf(self):
+    if not self.read_conf():
+      return False
     if not self.parser.has_section('host'):
       myLogging.logger.error( "Physical host machines should be defined in %s!" % self.main_conf)
       return False
@@ -178,6 +187,37 @@ class Conf:
                 myLogging.logger.error( "Domain '%s' format is not correct in [%s %s]!" % (n, site, platform))
                 return False
     return True
+
+  @classmethod
+  @myLogging.log('Conf')
+  def compare_conf(cls, old_conf, new_conf):
+    ret = {'ret': True,
+           'same': [],
+           'mod': False,
+           }
+    s1 = set(old_conf.parser.sections())
+    s2 = set(new_conf.parser.sections())
+    s_same = s1 & s2
+    s_del = filter(lambda x: x not in ['host', 'display', 'parameter'], s1 ^ s_same)
+    s_add = filter(lambda x: x not in ['host', 'display', 'parameter'], s2 ^ s_same)
+    if s_del or s_add:
+      ret['mod'] = True
+    if 'parameter' not in s_same or 'host' not in s_same or 'display' not in s_same:
+      myLogging.logger.warning('"parameter" or "host" or "display" is not in new main.conf!')
+      ret['ret'] = False
+      return ret
+    for s in s_same:
+      if s in ['host', 'display', 'parameter']:
+        continue
+      i1 = set(re.split('\s+', dict(old_conf.parser.items(s))['nodelist']))
+      i2 = set(re.split('\s+', dict(new_conf.parser.items(s))['nodelist']))
+      if not i1^i2:
+        ret['same'].append(re.split('\s+', s))
+      else:
+        ret['mod'] = True
+    myLogging.logger.debug('ret: %s' % ret)
+    return ret
+
 
 if __name__ =="__main__":
   import pprint

@@ -16,4 +16,5 @@ class SQLPlatformNodeList(SQLOperator):
 
   def save(self):
     self.db_inst = platform_node_list(**self.attr)
-    self.insert_or_update(self.db_inst, filters={'Platform': self.attr['Platform'], 'Node': self.attr['Node']})
+    #self.insert_or_update(self.db_inst, filters={'Platform': self.attr['Platform'], 'Node': self.attr['Node']})
+    self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']})

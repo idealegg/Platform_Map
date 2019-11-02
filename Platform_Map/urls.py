@@ -26,4 +26,6 @@ urlpatterns = [
     url(r'^display/$', views.display),
     url(r'^submit_platform/$', views.submit_platform),
     url(r'^submit_display/$', views.submit_display),
+    url(r'^$', views.index),
+    url(r'^backend/$', views.backend),
 ]
