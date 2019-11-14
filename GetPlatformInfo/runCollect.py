@@ -9,7 +9,7 @@ import xServer
 import parseUtil
 import confUtil
 import myLogging
-import sqlDisplayMachine, sqlPlatform, sqlPlatformNodeList, sqlRunState, sqlOperator, sqlSiteConf, machine
+import sqlDisplayMachine, sqlPlatform, sqlPlatformNodeList, sqlRunState, sqlOperator, machine
 from Display_Platform_Info.models import platform, platform_node_list, host_machine, display_machine, X_server, node, run_state
 import Platform_Map.settings
 import os
@@ -17,6 +17,7 @@ import time
 import shutil
 from django.db import connections
 from django.db.models import F
+import requests
 
 
 class RunCollect:
@@ -29,9 +30,10 @@ class RunCollect:
     self.node_ids = set()
     self.pm_login_map = {}
     self.first_run = True
-    self.ummodified_pfs = []
-    self.cnu = self.compute_next_run()
+    self.unmodified_pfs = []
     self.current_rs = None
+    self.last_all_begin_time = None
+    self.last_all_end_time = None
 
   @myLogging.log('RunCollect')
   def init_data(self):
@@ -43,7 +45,7 @@ class RunCollect:
       if not self.first_run:
         shutil.copyfile(self.db_path, '.'.join([self.db_path, time.strftime('%y%m%d%H%M%S', time.localtime())]))
       else:
-        shutil.copyfile(self.db_path, '.'.join([self.db_path, '.last_ver']))
+        shutil.copyfile(self.db_path, '.'.join([self.db_path, 'last_ver']))
 
     # Truncate tables
     #platform.objects.all().delete()
@@ -105,6 +107,7 @@ class RunCollect:
 
   @myLogging.log('RunCollect')
   def process_uncontrolled_node(self):
+    myLogging.logger.info('To process a uncontrolled node:')
     myLogging.logger.error("Start vm [%s] failed!" % self.vm.vm_state)
     self.vm.attr.update({'Host': self.pm.get_hostname()})
     self.vm.attr.update({'Host_Machine': self.vm.get_host_machine(),
@@ -115,24 +118,28 @@ class RunCollect:
 
   @myLogging.log('RunCollect')
   def process_direct_ssh_node(self, host):
+    myLogging.logger.info('To process a direct ssh node:')
     self.vm.set_user('system')
     try:
       self.vm.init_ssh()
     except Exception, e:
-      if e.message.find('timed out') != -1:
-        myLogging.logger.warning('Node [%s] ssh connect timeout!' % self.vm.attr['Name'])
-        self.vm.attr.update({'Host': host})
-        self.vm.attr.update({'Ping_reachable': "Y",
+      myLogging.logger.exception("Exception in init ssh to node %s" % self.vm.attr['Name'])
+      # if e.message.find('timed out') != -1:
+      #   myLogging.logger.warning('Node [%s] ssh connect timeout!' % self.vm.attr['Name'])
+      self.vm.attr.update({'Host': host})
+      self.vm.attr.update({'Ping_reachable': "Y",
                              'Reachable': 'N',
                              'Host_Machine': self.vm.get_host_machine(),
                              'Platform': self.vm.get_platform(),
                              })
-        return
-      else:
-        raise
-    for cmd in self.conf.get_cmd_list():
-      self.vm.execute_cmd(cmd)
-      self.vm.attr.update(parseUtil.parse_cmd(cmd, self.vm.stdout.read().split("\n"), self.vm.get_ops_name()))
+      return
+      # else:
+    #    raise
+    # for cmd in self.conf.get_cmd_list():
+    #   self.vm.execute_cmd(cmd)
+    #   self.vm.attr.update(parseUtil.parse_cmd(cmd, self.vm.stdout.read().split("\n"), self.vm.get_ops_name()))
+    self.vm.execute_cmd('ksh -lc "%s"' % ';'.join(map(lambda x: "echo 'system@$ " + x + "';" + x, self.conf.get_cmd_list())))
+    parseUtil.parse_output(self.vm.stdout, self.vm)
     self.vm.attr.update({'Host': host})
     self.vm.attr.update({'Ping_reachable': "Y",
                          'Reachable': 'Y',
@@ -142,6 +149,7 @@ class RunCollect:
                          })
 
   def process_pm_only_node(self):
+    myLogging.logger.info('To process a pm only node:')
     #self.vm.attr.update({'Ping_reachable': "N"}) # default value.
     script = parseUtil.gen_script(map(lambda x: x.strip(), self.conf.get_cmd_list()), self.vm.vm_state['Name'],
                                   not self.conf.try_virsh_console() or self.pm.is_ping_reachable(self.vm.vm_state['Name']))
@@ -162,18 +170,37 @@ class RunCollect:
       self.vm = None
 
   @myLogging.log('RunCollect')
+  def send_req2web(self, is_completed=False):
+    inst = self.current_rs.get_db_inst()
+    req = requests.post(self.conf.get_para('backend_push_link'),
+                        data={
+                                                                  'site': inst.Current_platform.Site,
+                                                                  'pf': inst.Current_platform.Platform,
+                                                                  'begin': inst.Begin,
+                                                                  'end': inst.End,
+                                                                  'state': 'Completed' if is_completed else 'Collecting',
+                                                                  'counter': inst.Counter,
+                                                                },
+                        timeout=self.conf.get_para_float('backend_push_timeout'))
+    myLogging.logger.info("req: %s" % req)
+
+  @myLogging.log('RunCollect')
   def collect_vm_info(self):
     self.node_ids = set()
     self.vm_list = []
     sqlRunState.SQLRunState.run_state_ids = set()
-    if self.ummodified_pfs:
-      completed_pfs = map(lambda x: platform.objects.get(Site=x[0], Platform=x[1]), self.ummodified_pfs)
+    if self.unmodified_pfs:
+      myLogging.logger.info('Conf changed.')
+      myLogging.logger.info('Un-modified pf: %s.' % self.unmodified_pfs)
+      completed_pfs = map(lambda x: platform.objects.get(Site=x[0], Platform=x[1]), self.unmodified_pfs)
       rss = run_state.objects.filter(id__in=map(lambda x: x.id, completed_pfs))
       rss.update(Counter=F('Counter')+1)
       sqlRunState.SQLRunState.run_state_ids.update(map(lambda x: x.id, rss))
+      myLogging.logger.info('Update their counter to %d' % rss[0].Counter)
       sqlRunState.SQLRunState.current_counter = rss[0].Counter
     else:
       completed_pfs = sqlRunState.SQLRunState.get_complete_pfs()
+      myLogging.logger.info('completed_pfs: %s' % map(lambda x: ' '.join([x.Site, x.Platform]), completed_pfs))
     myLogging.logger.info("Current run state counter: %d" % sqlRunState.SQLRunState.current_counter)
     # Check vms in physical host machines.
     for host in self.conf.get_physical_host_list():
@@ -196,6 +223,7 @@ class RunCollect:
         # Update run state
         self.current_rs = sqlRunState.SQLRunState(begin=None, pf=current_pf)
         self.current_rs.save()
+        self.send_req2web()
         for c_node in self.conf.get_site_platform_nodelist(site, pf):
           self.vm = None
           self.pm = None
@@ -222,7 +250,8 @@ class RunCollect:
               time.sleep(self.conf.get_para_float('wait_vm_start_sleep_time'))
             # Now vm is running, begin to check its info
             myLogging.logger.info("To check conf vm node: %s" % vm_state)
-            ret = os.system('ping -c 2 -W 2 %s >/dev/null 2>&1' % vm_state['Name'])
+            ret = parseUtil.ping_a_node(vm_state['Name'])
+            myLogging.logger.info('Ping result: %d' % ret)
             if not ret:
               # The node could be reached directly, use ssh.
               self.process_direct_ssh_node(self.pm.get_hostname())
@@ -233,10 +262,12 @@ class RunCollect:
             self.vm.save()
             self.node_ids.add(self.vm.get_id())
             if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():
+              myLogging.logger.info("Stopping vm %s" % vm_state['Name'])
               self.pm.stop_vm(self.vm)
           else: # c_node is not in vm list
-            myLogging.logger.info("to check non-vm conf node: %s" % c_node)
-            ret = os.system('ping -c 2 -W 2 %s >/dev/null 2>&1' % c_node)
+            myLogging.logger.info("To check non-vm conf node: %s" % c_node)
+            ret = parseUtil.ping_a_node(c_node)
+            myLogging.logger.info('Ping result: %d' % ret)
             if not ret:  # the node could be reaching
               self.vm = virtMachine.VirMachine(c_node)
               self.process_direct_ssh_node('')
@@ -249,16 +280,20 @@ class RunCollect:
             self.node_ids.add(self.vm.get_id())
           self.close_pm_vm()
         sqlRunState.SQLRunState(begin=self.current_rs.attr['Begin'], pf=current_pf).save()
+        self.send_req2web(True)
     # Check orphan list.
+    myLogging.logger.info('Try to get orphan list')
     current_pf = platform.objects.get(Site=sqlOperator.SQLOperator.ORPHAN)
     self.current_rs = sqlRunState.SQLRunState(begin=None, pf=current_pf)
     self.current_rs.save()
+    self.send_req2web()
     for vm_state in (x for x in filter(lambda x: x['Name'] not in self.conf.get_all_nodes(), self.vm_list)):
-      myLogging.logger.info("to check orphan node: %s" % vm_state)
+      myLogging.logger.info("To check orphan node: %s" % vm_state)
       self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'], True)
       self.pm = physicalMachine.HostMachine(self.pm_login_map[vm_state['Host']])
       self.pm.init_ssh()
       if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():
+        myLogging.logger.info("Starting vm %s" % vm_state['Name'])
         self.vm.attr.update(self.pm.start_vm(self.vm))
         if self.vm.attr['Controlled'] == 'N' or not self.pm.wait_vm_start(self.vm,
                                                                           int(self.conf.get_para_float(
@@ -273,9 +308,11 @@ class RunCollect:
       self.vm.save()
       self.node_ids.add(self.vm.get_id())
       if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():
+        myLogging.logger.info("Stopping vm %s" % vm_state['Name'])
         self.pm.stop_vm(self.vm)
       self.close_pm_vm()
     sqlRunState.SQLRunState(begin=self.current_rs.attr['Begin'], pf=current_pf).save()
+    self.send_req2web(True)
     myLogging.logger.info("nodes id all: [%s]" % map(lambda x: x.id, node.objects.all()))
     myLogging.logger.info("nodes id rev: [%s]" % list(self.node_ids))
     myLogging.logger.info("run_state id all: [%s]" % map(lambda x: x.id, run_state.objects.all()))
@@ -302,39 +339,35 @@ class RunCollect:
   def mapping_platform_node(self):
     pass
 
-  def compute_next_run(self):
-    times = int(self.conf.get_para_int('collect_interval') / self.conf.get_para_float('check_conf_interval'))
-    retry = times
-    while retry > 0:
-      r = {'timeout': False,
-           'new_conf': None}
-      sent = False
+  @myLogging.log('RunCollect')
+  def check_conf_change_timeout(self):
+    while time.time() - self.last_all_begin_time < float(self.conf.get_para_int('collect_interval')):
       new_conf = confUtil.Conf()
       new_conf.read_conf()
       com_ret = confUtil.Conf.compare_conf(self.conf, new_conf)
       if com_ret['ret']:
-        if com_ret['mod']:
-          self.ummodified_pfs = com_ret['same']
-          r['new_conf'] = new_conf
-          sent = True
-          n = yield r
-          times = int(self.conf.get_para_int('collect_interval') / self.conf.get_para_float('check_conf_interval'))
-          retry = times
-      if not sent:
-        time.sleep(self.conf.get_para_float('check_conf_interval'))
-        retry -= 1
-    n = yield {'timeout': True,
-               'new_conf': None}
+        if com_ret['para_mod'] or com_ret['host_mod'] or com_ret['display_mod']:
+          self.unmodified_pfs = []
+          return False
+        if com_ret['site_mod']:
+          self.unmodified_pfs = com_ret['site_same']
+          myLogging.logger.info("Found Conf change, run next collect at once.")
+          return False
+      myLogging.logger.info("Sleep %.02f seconds!" % self.conf.get_para_float('check_conf_interval'))
+      myLogging.logger.info("Next collecting is after %.02f seconds!" %
+                          (float(self.conf.get_para_int('collect_interval') - time.time() + self.last_all_begin_time)))
+      time.sleep(self.conf.get_para_float('check_conf_interval'))
+    myLogging.logger.info("Interval time reached, run next collect at once.")
+    return True
 
   @myLogging.log('RunCollect')
   def run_collect(self):
     #myLogging.setup_logging()
-    try:
-      while True:
+    while True:
+      try:
         re_load_conf = False
         if not self.first_run:
-          cnr_ret = self.cnu.send(None)
-          re_load_conf = not cnr_ret['timeout']
+          re_load_conf = not self.check_conf_change_timeout()
         if self.first_run or re_load_conf:
           self.conf = confUtil.Conf()
           if not self.conf.load_conf():
@@ -343,23 +376,33 @@ class RunCollect:
           myLogging.logger.info(self.conf.config)
           myLogging.logger.info("Set connect timeout to [%f]" % self.conf.get_para_float('connect_timeout'))
           machine.Machine.set_class_connect_timeout(self.conf.get_para_float('connect_timeout'))
-        start_time = time.time()
+        begin_time = time.time()
+        if not re_load_conf:
+          self.last_all_begin_time = begin_time
+        myLogging.logger.info("Starting collecting!")
         # Get last completed_pfs
         #self.changed_site = sqlSiteConf.SQLSiteConf.get_all_conf_change(
         #  filter(lambda x: x != self.conf.main_conf, self.conf.conf_list))
-        self.init_data()
+        if self.first_run or re_load_conf:
+          myLogging.logger.info("Starting init db data after loading conf!")
+          self.init_data()
         if not self.conf.get_para_bool('skip_first_display_collect') or not self.first_run:
+          myLogging.logger.info("Starting collect display info!")
           self.collect_display_info()
+        myLogging.logger.info("Starting collect vm info!")
         self.collect_vm_info()
         self.mapping_platform_node()
         connections.close_all()
         end_time = time.time()
-        collect_time = int(end_time - start_time)
+        if not re_load_conf:
+          self.last_all_end_time = end_time
+        collect_time = int(end_time - begin_time)
         myLogging.logger.info("Last collecting cost %d seconds!" % collect_time)
         self.first_run = False
-    except Exception:
-      myLogging.logger.exception("Exception in run_collect!")
-      return False
+      except Exception:
+        myLogging.logger.exception("Exception in run_collect!")
+        self.first_run = False
+    return False
 
 
 if __name__ == "__main__":

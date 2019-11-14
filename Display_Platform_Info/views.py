@@ -7,20 +7,25 @@ from django.shortcuts import render
 
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+from django.db import transaction
 import GetPlatformInfo.runCollect as runCollect
-import GetPlatformInfo.sqlSiteConf as sqlSiteConf
 import GetPlatformInfo.myLogging as myLogging
 import GetPlatformInfo.virtMachine as virtMachine
 
 from django.views.decorators.csrf import csrf_exempt
-from Display_Platform_Info.models import node, host_machine, display_machine, X_server, site_conf, run_state
+from Display_Platform_Info.models import node, host_machine, display_machine, X_server, run_state
 import Display_Platform_Info.models
 import Platform_Map.settings
 import os
 import re
 import socket
+from dwebsocket.decorators import accept_websocket
+import threading
+import datetime
+import json
 
 
+MAX_WEB_CONNECTION = 5
 ORPHAN_NAME = 'ORPHAN'
 ROOM_MAPPING = [
   [{'short': 'EQP', 'name': '开放办公室1'},
@@ -47,6 +52,27 @@ for room_map in ROOM_MAPPING:
 DESC_PATTERN = re.compile('^\s*Description\s*[:=]')
 OWNER_PATTERN = re.compile('^\s*Owner\s*[:=]')
 VAILID_PATTERN = re.compile('^\s*Validity\s*[:=]')
+rand_list = []
+sockets = {}
+lock = threading.Lock()
+lock2 = threading.Lock()
+lock3 = threading.Lock()
+
+
+def datetime2str(dt):
+  return "%s.%06d" % (dt.strftime('%Y-%m-%d %H:%M:%S'), dt.microsecond)
+
+
+def str2datetime(s):
+  return datetime.datetime(
+    int(s[:4]),
+    int(s[5:7]),
+    int(s[8:10]),
+    int(s[11:13]),
+    int(s[14:16]),
+    int(s[17:19]),
+    int(s[20:])
+  )
 
 
 @myLogging.log('views')
@@ -102,10 +128,10 @@ def write_back_to_conf(pf):
   os.unlink(conf)
   myLogging.logger.info("To rename new conf file!")
   os.rename(conf_new, conf)
-  sc = site_conf.objects.get(Site=pf.Site)
-  sc.Md5 = sqlSiteConf.SQLSiteConf.get_conf_md5(conf)
-  myLogging.logger.info("To update site_conf table!")
-  sc.save()
+  #sc = site_conf.objects.get(Site=pf.Site)
+  #sc.Md5 = sqlSiteConf.SQLSiteConf.get_conf_md5(conf)
+  #myLogging.logger.info("To update site_conf table!")
+  #sc.save()
 
 
 def index(request):
@@ -152,6 +178,7 @@ def platform(request):
               'desc': pf.Description,
               'owner': pf.Owner,
               'valid': pf.Validity,
+              'last_mod': datetime2str(pf.Last_modified),
               'nodes': nodes}
       a_site['pfs'].append(a_pf)
     if site != ORPHAN_NAME:
@@ -170,7 +197,10 @@ def platform(request):
 @myLogging.log('views')
 @csrf_exempt
 def submit_platform(request):
-  ret = 'Failed'
+  ret = {'ret': 'Failed',
+         'last_mod': '',
+         }
+  locked = False
   if request.method == 'POST':
     try:
       site = request.POST.get('site').strip()
@@ -178,22 +208,34 @@ def submit_platform(request):
       desc = request.POST.get('desc').strip()
       owner = request.POST.get('owner').strip()
       valid = request.POST.get('valid').strip()
-      myLogging.logger.info('POST:\nsite: %s\n pf: %s\n desc: %s\n owner: %s\n valid: %s' % (site, pf, desc, owner, valid))
+      last_mod = request.POST.get('last_mod').strip()
+      myLogging.logger.info('POST:\nsite: %s\n pf: %s\n desc: %s\n owner: %s\n valid: %s\nlast_mod: %s'
+                            % (site, pf, desc, owner, valid, last_mod))
       pf_info = Display_Platform_Info.models.platform.objects.get(Site=site, Platform=pf)
-      if pf_info.Description != desc or pf_info.Owner != owner or pf_info.Validity != valid:
+      if str2datetime(last_mod) < pf_info.Last_modified:
+        ret['ret'] = 'Platform modified by others, please refresh page!'
+      elif pf_info.Description != desc or pf_info.Owner != owner or pf_info.Validity != valid:
         pf_info.Description = desc
         pf_info.Owner = owner
         pf_info.Validity = valid
-        pf_info.save()
-        write_back_to_conf(pf_info)
-        ret = 'Successful'
+        lock2.acquire()
+        locked = True
+        with transaction.atomic():
+          pf_info.save()
+          write_back_to_conf(pf_info)
+        ret['last_mod'] = datetime2str(pf_info.Last_modified)
+        lock2.release()
+        locked = False
+        ret['ret'] = 'Successful'
       else:
-        ret = 'No change!'
+        ret['ret'] = 'No change!'
     except Exception, e:
+      if locked:
+        lock2.release()
       myLogging.logger.exception('Exception in submit_platform!')
       ret = e.message
-  myLogging.logger.info('ret: %s' %ret)
-  return HttpResponse(ret)
+  myLogging.logger.info('ret: %s' % ret)
+  return JsonResponse(ret)
 
 
 @myLogging.log('views')
@@ -228,11 +270,17 @@ def display(request):
         ns = node.objects.filter(X_server=x_server).order_by('Name')
         #print "x:[%s %d], n:[%s]" % (x_server.Host, x_server.Tty, map(lambda x: x.Name, ns))
         if not ns.count():
-          a_dm.append({'ns': '', 'x': x_server, 'conflict': 'N'})
+          a_dm.append({'n_name': '', 'x': x_server, 'conflict': 'N', 'n_time': []})
         elif ns.count() == 1:
-          a_dm.append({'ns': ns[0].Name, 'x': x_server, 'conflict': 'N'})
+          a_dm.append({'n_name': ns[0].Name,
+                       'x': x_server,
+                       'conflict': 'N',
+                       'n_time': [{'n': ns[0].Name, 't': datetime2str(ns[0].Last_modified)}]})
         else:
-          a_dm.append({'ns': ' '.join(map(lambda x: x.Name, ns)), 'x': x_server, 'conflict': 'Y'})
+          a_dm.append({'n_name': ' '.join(map(lambda x: x.Name, ns)),
+                       'x': x_server,
+                       'conflict': 'Y',
+                       'n_time': map(lambda x: {'n': x.Name, 't': datetime2str(x.Last_modified)}, ns)})
       a_room.append({'n': d, 'xs': a_dm})
     room_infos.append({'room': room, 'ds': a_room})
   #print "ds: %s" % ds
@@ -243,7 +291,7 @@ def display(request):
 
 
 @myLogging.log('views')
-def change_x11_fw(vm, n, x):
+def change_x11_fw(vm, x):
   err = 'Successful'
   cmd = '''
   cat << EOF > /etc/xinetd.d/x11-fw
@@ -272,12 +320,13 @@ EOF
     return err
   vm.execute_cmd('service xinetd reload', redirect_stderr=False)
   myLogging.logger.info(vm.stdout.read())
-  stderr = vm.stderr.read()
-  if stderr:
-    vm.close_ssh()
-    err = "Reload x11-fw error!"
-    myLogging.logger.error(err)
-    return err
+  myLogging.logger.info(vm.stderr.read())
+  #stderr = vm.stderr.read()
+  #if stderr:
+  #  vm.close_ssh()
+  #  err = "Reload x11-fw error!"
+  #  myLogging.logger.error(err)
+  #  return err
   vm.close_ssh()
   ret = vm.set_x_server(x)
   if not ret:
@@ -290,43 +339,69 @@ EOF
 @csrf_exempt
 def submit_display(request):
   ret = 'Failed'
+  ret2 = ''
   ret_cx =  []
-  changed_xs = []
+  changed_xs = set([])
+  locked = False
   if request.method == 'POST':
     try:
       host = request.POST.get('host').strip()
       nodes = request.POST.get('ns').strip().split()
-      nodes.sort()
-      nodes =filter(lambda y: y, nodes)
+      n_time = request.POST.get('n_time').strip()
       tty = int(request.POST.get('tty').strip().replace('TTY', ''))
       myLogging.logger.info("POST:\nhost: %s\nnodes: %s\ntty: %s" % (host, nodes, tty))
+      myLogging.logger.info("POST:n_time: %s" % n_time)
+      lock3.acquire()
+      locked = True
+      if n_time:
+        j = json.loads(n_time)
+        try:
+          for n in j:
+            node.objects.get(Name=n['n'], Last_modified=str2datetime(n['t']))
+        except node.DoesNotExist:
+          if locked:
+            lock3.release()
+            locked = False
+          ret = 'Node modified by others, pls refresh!'
+          myLogging.logger.info('ret: %s' % ret)
+          return JsonResponse({'ret': ret, 'cx': ret_cx})
+      nodes.sort()
+      nodes =filter(lambda y: y, nodes)
       x = X_server.objects.get(Host=host, Tty=tty)
       ns = node.objects.filter(X_server=x)
       nodes2 = map(lambda y: y.Name, ns)
       nodes2.sort()
       if cmp(nodes, nodes2) != 0:
-        for n in [y for y in nodes if y not in nodes2]:
-          vm = virtMachine.VirMachine(n)
-          vm_db = vm.get_vm_db_inst()
-          old_x =None if not vm_db else vm_db.X_server
-          ret = change_x11_fw(vm, n, x)
-          if ret != "Successful":
-            break
-          if not changed_xs:
-            changed_xs.append(x)
-          if old_x:
-            changed_xs.append(old_x)
+        with transaction.atomic():
+          for n in [y for y in nodes if y not in nodes2]:
+            vm = virtMachine.VirMachine(n)
+            vm_db = vm.get_vm_db_inst()
+            old_x =None if not vm_db else vm_db.X_server
+            ret2 = change_x11_fw(vm, x)
+            if ret2 != "Successful":
+              changed_xs = set([])
+              break
+            ret = ret2
+            if not changed_xs:
+              changed_xs.add(x)
+            if old_x:
+              changed_xs.add(old_x)
         for cx in changed_xs:
-          cx_ns = ' '.join(map(lambda y: y.Name, node.objects.filter(X_server=cx)))
+          cx_ns = node.objects.filter(X_server=cx)
+          s_ns = ' '.join(map(lambda y: y.Name, cx_ns))
           ret_cx.append({'host': cx.Host,
                          'tty': cx.Tty,
-                         'ns': cx_ns,
-                         'c': 'Y' if cx_ns.count(' ') else 'N',
+                         'ns': s_ns,
+                         'c': 'Y' if s_ns.count(' ') else 'N',
+                         'n_time': map(lambda y: {'n': y.Name, 't': datetime2str(y.Last_modified)}, cx_ns)
                          })
-        if not changed_xs:
+        if not ret2 and not changed_xs:
           ret = 'Not allowed to remove!'
       else:
         ret = 'No change!'
+      if locked:
+        lock3.release()
+        locked = False
     except socket.gaierror:
       myLogging.logger.exception('getaddrinfo failed in submit display!')
       ret = 'Getaddrinfo failed'
@@ -336,6 +411,10 @@ def submit_display(request):
         ret = e.message
       else:
         ret = e.__class__.__name__
+    finally:
+      if locked:
+        lock3.release()
+        #locked = False
   myLogging.logger.info('ret: %s' % ret)
   myLogging.logger.info('cx: %s' % ret_cx)
   return JsonResponse({'ret': ret, 'cx': ret_cx})
@@ -350,3 +429,75 @@ def backend(request):
                                           })
 
 
+@myLogging.log('views')
+@csrf_exempt
+def backend2(request):
+  now = datetime.datetime.now()
+  rss = run_state.objects.all().order_by('-Counter', 'Begin')
+  max_begin = max(map(lambda x: x.Begin, rss)) if rss.count() else now
+  myLogging.logger.info("rss: %s" % rss)
+  myLogging.logger.info("max_begin: %s" % max_begin)
+  return render(request, 'Backend2.html', {'rss': rss,
+                                            'req_time': datetime2str(max_begin),
+                                           })
+
+
+@myLogging.log('views')
+@csrf_exempt
+@accept_websocket
+def client_connect(request):
+  if request.is_websocket():
+    lock.acquire()
+    if len(sockets) >= MAX_WEB_CONNECTION:
+      request.websocket.close()
+      lock.release()
+      return
+    sockets[request.websocket] = {}
+    lock.release()
+    myLogging.logger.info("socket number: %d" % len(sockets))
+    myLogging.logger.info('enter message process')
+    for message in request.websocket:
+      myLogging.logger.info("Received a message: %s" % message)
+      if message:
+        if len(message) == 26:
+          sockets[request.websocket]['begin'] = str2datetime(message)
+      #request.websocket.send('abc')
+    myLogging.logger.info('exit message process')
+    lock.acquire()
+    del sockets[request.websocket]
+    lock.release()
+  else:
+    return HttpResponse('Are you kiding me?')
+
+
+@myLogging.log('views')
+@csrf_exempt
+def backend_push(request):
+  if request.method == 'POST':
+    rs_site = request.POST.get('site').strip()
+    rs_pf = request.POST.get('pf').strip()
+    rs_b = request.POST.get('begin').strip()
+    rs_s = request.POST.get('state').strip()
+    rs_c = request.POST.get('counter').strip()
+    myLogging.logger.info('site: %s, pf: %s' % (rs_site, rs_pf))
+    myLogging.logger.info('rs_b: %s, rs_s: %s, rs_c: %s' % (rs_b, rs_s, rs_c))
+    dt = str2datetime(rs_b)
+    lock.acquire()
+    for sock in sockets:
+      # rss = run_state.objects.filter(Begin__range=[sockets[sock]['begin'], dt],
+      #                                Counter=int(rs_c)).order_by('-Counter', 'Begin')
+      rss = run_state.objects.filter(Begin__range=[sockets[sock]['begin'], dt],
+                                     Counter=int(rs_c)).order_by('Begin')
+      ret = map(lambda x: {'Site': x.Current_platform.Site,
+                            'Platform': x.Current_platform.Platform,
+                            'Begin': datetime2str(x.Begin) if x.Begin else '',
+                            'End': datetime2str(x.End) if x.End else '',
+                            'State': rs_s if x.Begin == dt else 'Completed',
+                            'Counter': x.Counter,
+                           },
+                rss)
+      myLogging.logger.info('ret: %s' % ret)
+      sock.send(json.dumps(ret))
+      sockets[sock]['begin'] = dt
+    lock.release()
+  return HttpResponse('ok')

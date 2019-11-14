@@ -78,10 +78,13 @@
                             <div class="tty_info" conflict="{{ x.conflict }}" active="{{ x.x.Active }}">
                                 <div class="tty_text">TTY{{ x.x.Tty }}</div>
                                 <div class="node_info">
-                                   {% ifequal x.ns '' %}
-                                   <div class="node_text" title="{{ x.ns }}" ondblclick="dbclick_tty_nodes(this)">&nbsp;</div>
+                                   {% ifequal x.n_name '' %}
+                                   <div class="node_text" title="{{ x.n_name }}" ondblclick="dbclick_tty_nodes(this)">&nbsp;</div>
                                    {% else %}
-                                   <div class="node_text" title="{{ x.ns }}" ondblclick="dbclick_tty_nodes(this)">{{ x.ns }}</div>
+                                   <div class="node_text" title="{{ x.n_name }}" ondblclick="dbclick_tty_nodes(this)">{{ x.n_name }}</div>
+                                       {% for nod in x.n_time %}
+                                       <input type="hidden" id="last-modified-{{ nod.n }}" value="{{ nod.t }}" />
+                                       {% endfor %}
                                    {% endifequal %}
                                 </div>
                                 <div class="clear_float"></div>

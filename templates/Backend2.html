@@ -7,18 +7,24 @@
     <script type="text/javascript" src="../static/js/alt_rows.js"></script>
     <script type="text/javascript" src="../static/js/jquery-3.4.1.min.js"></script>
     <script type="text/javascript">
-        window.onload = function(){
-          console.log("onload");
-          altBackendRow();
-          };
+        window.onload = altBackendRow;
+        window.onunload = closeConn;
     </script>
     <title>Backend collect info</title>
 </head>
 <body>
     <div >
-        <br>
         <h2 style="padding: 10px">Backend collect info</h2>
         <hr>
+        <div>
+            <input type="hidden" id="req_time" value="{{ req_time }}">
+            <input type="hidden" id="collect_id">
+            <button id="start_real_time" onclick="onclickwebsocketbtn()">Start Real Time Monitor</button>
+        </div>
+        <div>
+            <label>Real time connection state: </label>
+            <label id="real_time_state"></label>
+        </div>
                     <table class="altrowstable" style="padding:40px;margin: 20px">
                     <thead>
                     <tr>
@@ -32,11 +38,11 @@
                     </thead>
                     <tbody>
                         {%  for item in rss %}
-                        <tr id={{ forloop.counter }}>
+                        <tr id="tr-{{ item.Current_platform.Site }}-{{ item.Current_platform.Platform }}">
                         <td class='itemvalue'>{{item.Current_platform.Site}}</td>
                         <td class='itemvalue'>{{item.Current_platform.Platform}}</td>
-                        <td class='itemvalue'>{{item.Begin|date:"Y-m-d H:i:s"}}</td>
-                        <td class='itemvalue'>{{item.End|date:"Y-m-d H:i:s"}}</td>
+                        <td class='itemvalue'>{{item.Begin|date:"Y-m-d H:i:s.u"}}</td>
+                        <td class='itemvalue'>{{item.End|date:"Y-m-d H:i:s.u"}}</td>
                         <td class='itemvalue'>{{item.State}}</td>
                         <td class='itemvalue'>{{item.Counter}}</td>
                         </tr>

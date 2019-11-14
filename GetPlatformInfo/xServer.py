@@ -30,7 +30,11 @@ class XServer(Machine, SQLOperator):
   @myLogging.log('XServer')
   def get_x_servers(self, timeout=None):
     self.set_connect_timeout(timeout)
-    self.init_ssh()
+    try:
+      self.init_ssh()
+    except Exception,e:
+      myLogging.logger.exception('Exception when init ssh to X node %s!' % self.attr['Host'])
+      return
     sql_dm = SQLDisplayMachine(self.login)
     sql_dm.set_ip(self.get_ip())
     sql_dm.set_hostname(self.get_hostname())

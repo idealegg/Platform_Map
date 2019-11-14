@@ -104,6 +104,5 @@ venv.bak/
 .mypy_cache/
 
 log/
-db.sqlite3.19*
-db.sqlite3.bak
-*.conf
+db.sqlite3.*
+conf/*/
