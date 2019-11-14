@@ -3,7 +3,7 @@
 from GetPlatformInfo.sqlOperator import SQLOperator
 from Display_Platform_Info.models import run_state
 import myLogging
-import time
+import datetime
 
 
 class SQLRunState(SQLOperator):
@@ -12,7 +12,7 @@ class SQLRunState(SQLOperator):
 
   def __init__(self, begin, pf):
     super(SQLRunState, self).__init__()
-    now = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+    now = datetime.datetime.now()
     self.platform = pf
     self.attr = {'Current_platform': pf,
                  }

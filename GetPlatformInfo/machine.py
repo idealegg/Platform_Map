@@ -130,7 +130,7 @@ class Machine(object):
   def get_ip(self):
     if self.IP:
       return self.IP
-    cmd = 'ifconfig -a'
+    cmd = '/sbin/ifconfig -a'
     self.execute_cmd(cmd)
     out = parse_cmd(cmd, self.stdout.read().split('\n'))
     return out['IP']

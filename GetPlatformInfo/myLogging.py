@@ -28,13 +28,14 @@ def log(cls_name):
         def wrapper(*args, **kw):
             global logger
             global logger_names
+            logger.debug('call %s():' % func.__name__)
             log_name = "%s.%s" % (cls_name, func.__name__)
             logger_names.append(log_name)
             logger = logging.getLogger(log_name)
-            logger.debug('call %s():' % func.__name__)
             ret = func(*args, **kw)
-            logger_names.pop()
+            logger.debug('exit %s():' % logger_names.pop())
             logger = logging.getLogger(logger_names[-1])
+            logger.debug('back %s():' % logger_names[-1])
             return ret
         return wrapper
     return decorator

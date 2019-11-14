@@ -2,6 +2,9 @@
 
 import re
 import myLogging
+import os
+import platform
+
 
 UNAME_PATTERN = re.compile('^(\w+)\s+([^\s]+)\s+([^\s]+)\s+')
 IFCONFIG_P1 = re.compile('^([^\s:]+).*?(HWaddr\s+([\w:]+))?$')
@@ -103,7 +106,7 @@ def parse_output(output, vm_class, prompt='system@'):
 @myLogging.log("parseUtil")
 def parse_cmd(cmd, cmd_out, vm_ops_name=''):
   myLogging.logger.info( "cmd2: %s" % cmd)
-  myLogging.logger.debug("cmd_out: %s" % cmd_out)
+  myLogging.logger.info("cmd_out: %s" % cmd_out)
   myLogging.logger.debug("vm_ops_name: %s" % vm_ops_name)
   ret1 = {}
   if cmd == 'uname -a':
@@ -115,7 +118,7 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
               }
   elif cmd == 'cat /etc/thalix-release':
     ret1 = {'Thalix': cmd_out[0].strip()}
-  elif cmd == 'ifconfig -a':
+  elif cmd.find('ifconfig') != -1:
     cur_interface = ''
     interface = {}
     ret = []
@@ -165,6 +168,7 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
     ret = {}
     avoid_color = ''
     for line in cmd_out:
+      line = line.strip()
       tmp = line.split('=')
       if len(tmp) > 1:
         ret[tmp[0]] = tmp[1]
@@ -215,6 +219,17 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
       fields = re.split('\s*=\s*', line.strip())
       if len(fields) > 1:
         x11_fw[fields[0].strip()] = fields[1].strip()
-    ret1 = {'Display': x11_fw['redirect']} if x11_fw.has_key('redirect') else {}
+    ret1 = {'Display': x11_fw['redirect']} if 'redirect' in x11_fw else {}
   myLogging.logger.debug('ret1: %s' % ret1)
   return ret1
+
+
+def ping_a_node(n):
+  pa = platform.architecture()
+  if pa[1].find('Win') != -1:
+    #ret = os.system('ping -n 2 -w 2 %s >NUL 2>&1' % n)
+    ret = os.system('ping -n 2 -w 2 %s' % n)
+  else:
+    #ret = os.system('ping -c 2 -W 2 %s >/dev/null 2>&1' % n)
+    ret = os.system('ping -c 2 -W 2 %s' % n)
+  return ret

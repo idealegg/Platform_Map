@@ -3,7 +3,7 @@ set timeout 3
 set done 1
 set nologined 1
 set timeout_case 0
-spawn ssh -o ConnectTimeout=1 -l system whsev01v012
+spawn ssh -o ConnectTimeout=1 -l system gusev02v014
 while (${done}) {
   expect {
     " login:" { if (${nologined}) {

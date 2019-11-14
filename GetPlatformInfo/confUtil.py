@@ -36,6 +36,8 @@ class Conf:
                     'wait_vm_start_ping_time': 30.0,
                     'wait_vm_start_sleep_time': 10.0,
                     'check_conf_interval': 5.0,
+                    'backend_push_timeout': 2.0,
+                    'backend_push_link': 'http://localhost:8000/backend_push/',
                     'cmd_list': ['uname -a',
                                  'cat /etc/thalix-release',
                                  'ifconfig -a',
@@ -154,6 +156,9 @@ class Conf:
   def get_para_bool(self, parameter):
     return self.config['parameter'][parameter].upper() in self.positive
 
+  def get_para(self, parameter):
+    return self.config['parameter'][parameter]
+
   def get_para_int(self, parameter):
     return int(self.config['parameter'][parameter])
 
@@ -192,8 +197,11 @@ class Conf:
   @myLogging.log('Conf')
   def compare_conf(cls, old_conf, new_conf):
     ret = {'ret': True,
-           'same': [],
-           'mod': False,
+           'site_same': [],
+           'site_mod': False,
+           'para_mod': False,
+           'host_mod': False,
+           'display_mod': False,
            }
     s1 = set(old_conf.parser.sections())
     s2 = set(new_conf.parser.sections())
@@ -203,18 +211,22 @@ class Conf:
     if s_del or s_add:
       ret['mod'] = True
     if 'parameter' not in s_same or 'host' not in s_same or 'display' not in s_same:
-      myLogging.logger.warning('"parameter" or "host" or "display" is not in new main.conf!')
+      myLogging.logger.warning('Section "parameter" or "host" or "display" is not in new main.conf!')
       ret['ret'] = False
       return ret
+    ret['para_mod'] = bool(set(old_conf.parser.items('parameter')) ^ set(new_conf.parser.items('parameter')))
     for s in s_same:
-      if s in ['host', 'display', 'parameter']:
+      if s in ['parameter']:
         continue
       i1 = set(re.split('\s+', dict(old_conf.parser.items(s))['nodelist']))
       i2 = set(re.split('\s+', dict(new_conf.parser.items(s))['nodelist']))
-      if not i1^i2:
-        ret['same'].append(re.split('\s+', s))
+      if s in ['host', 'display']:
+        ret['_'.join([s, 'mod'])] = bool(i1 ^ i2)
       else:
-        ret['mod'] = True
+        if not i1^i2:
+          ret['site_same'].append(re.split('\s+', s))
+        else:
+          ret['site_mod'] = True
     myLogging.logger.debug('ret: %s' % ret)
     return ret
 
