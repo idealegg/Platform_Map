@@ -233,7 +233,7 @@ def submit_platform(request):
       if locked:
         lock2.release()
       myLogging.logger.exception('Exception in submit_platform!')
-      ret = e.message
+      ret = "%s: %s" % (e.__class__.__name__, e.message)
   myLogging.logger.info('ret: %s' % ret)
   return JsonResponse(ret)
 
@@ -328,10 +328,7 @@ EOF
   #  myLogging.logger.error(err)
   #  return err
   vm.close_ssh()
-  ret = vm.set_x_server(x)
-  if not ret:
-    err = "Set x server error!"
-    myLogging.logger.error(err)
+  vm.set_x_server(x)
   return err
 
 
@@ -378,12 +375,11 @@ def submit_display(request):
             vm_db = vm.get_vm_db_inst()
             old_x =None if not vm_db else vm_db.X_server
             ret2 = change_x11_fw(vm, x)
+            ret = ret2
             if ret2 != "Successful":
               changed_xs = set([])
               break
-            ret = ret2
-            if not changed_xs:
-              changed_xs.add(x)
+            changed_xs.add(x)
             if old_x:
               changed_xs.add(old_x)
         for cx in changed_xs:
@@ -407,10 +403,7 @@ def submit_display(request):
       ret = 'Getaddrinfo failed'
     except Exception, e:
       myLogging.logger.exception('Exception in submit display!')
-      if e.message:
-        ret = e.message
-      else:
-        ret = e.__class__.__name__
+      ret = "%s: %s" % (e.__class__.__name__, e.message)
     finally:
       if locked:
         lock3.release()

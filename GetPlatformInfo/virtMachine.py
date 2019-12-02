@@ -46,16 +46,11 @@ class VirMachine(Machine, SQLOperator):
 
   @myLogging.log('VirMachine')
   def set_x_server(self, x):
-    try:
-      self.db_inst = node.objects.get(Name=self.attr['Name'])
-      self.db_inst.X_server = x
-      self.db_inst.Display = '%s %d' %(x.Host, x.Port)
-      self.db_inst.save()
-    except:
-      myLogging.logger.exception('Exception in setting x server [%s %d] for node [%s]!'
-                                 %(x.Host, x.Port, self.attr['Name']))
-      return False
-    return True
+    self.db_inst = node.objects.get(Name=self.attr['Name'])
+    self.db_inst.X_server = x
+    self.db_inst.Display = '%s %d' %(x.Host, x.Port)
+    self.db_inst.save()
+
 
   def get_host_machine(self):
     if 'Host' in self.attr:

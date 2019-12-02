@@ -1,0 +1,9 @@
+2019-11-1
+    First version
+2019-11-14
+    1. Fix some bugs
+    2. Add real time monitor function
+    3. Add some lock to limit the concurrence requests for web.
+2019-12-02
+    1. If read conf failed, don't reload conf.
+    2. Optimize the error message for page modification of site info or display info.
