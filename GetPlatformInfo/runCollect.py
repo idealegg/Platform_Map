@@ -343,16 +343,16 @@ class RunCollect:
   def check_conf_change_timeout(self):
     while time.time() - self.last_all_begin_time < float(self.conf.get_para_int('collect_interval')):
       new_conf = confUtil.Conf()
-      new_conf.read_conf()
-      com_ret = confUtil.Conf.compare_conf(self.conf, new_conf)
-      if com_ret['ret']:
-        if com_ret['para_mod'] or com_ret['host_mod'] or com_ret['display_mod']:
-          self.unmodified_pfs = []
-          return False
-        if com_ret['site_mod']:
-          self.unmodified_pfs = com_ret['site_same']
-          myLogging.logger.info("Found Conf change, run next collect at once.")
-          return False
+      if new_conf.read_conf():
+        com_ret = confUtil.Conf.compare_conf(self.conf, new_conf)
+        if com_ret['ret']:
+          if com_ret['para_mod'] or com_ret['host_mod'] or com_ret['display_mod']:
+            self.unmodified_pfs = []
+            return False
+          if com_ret['site_mod']:
+            self.unmodified_pfs = com_ret['site_same']
+            myLogging.logger.info("Found Conf change, run next collect at once.")
+            return False
       myLogging.logger.info("Sleep %.02f seconds!" % self.conf.get_para_float('check_conf_interval'))
       myLogging.logger.info("Next collecting is after %.02f seconds!" %
                           (float(self.conf.get_para_int('collect_interval') - time.time() + self.last_all_begin_time)))

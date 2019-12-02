@@ -1,0 +1,64 @@
+This project inlcudes 2 tools:
+  1. Platform mapping info collecting tool.
+  2. Platform mapping info display web server.
+
+1. Platform mapping info collecting tool.
+
+   1.1 Usage.
+       In this derictory(better to be used by root):
+
+       1.1.1 Cold start(clean db and start).
+       > ./start_collect_cold.sh
+
+       1.1.2 Noraml start(no clean db).
+       > ./start_collect.sh
+
+       1.1.3. Stop.
+       > ./stop_collect.sh
+
+       1.1.4. Restart(Choose 'Y' when prompting).
+       > ./start_collect.sh
+
+   1.2 Description.
+       This tool would do the following things:
+       a. Check conf.
+       b. Backup db.
+       c. Init db.
+       d. Collect x server info.
+       e. Collect physical machine info.
+       f. Collect vm info.
+
+       Feature:
+       a. Re-load conf with no restart.
+       b. Send run info to web server.
+       c. To be added.
+
+2. Platform mapping info display web server.
+
+   2.1 Usage.
+       In this derictory(better to be used by root):
+
+       1.1.1 Noraml start.
+       > ./start_server.sh
+
+       1.1.3. Stop.
+       > ./stop_server.sh
+
+       1.1.4. Restart(Choose 'Y' when prompting).
+       > ./start_server.sh
+
+   2.2 Description.
+       There are 5 pages as below:
+       a. Home page.
+          To index the function pages.
+       b. Platform node info
+          b1. To display platform nodes info.
+          b2. To change platform used status.
+       c. Physical machine info
+          To display physical nodes info.
+       d. Display machine info
+          d1. To display x servers info of display machines.
+          d2. To modify the x server of nodes.
+       e. Collect platform info
+          e1. To display collecting status.
+          e2. To monitor the status real time.(limited to 5 clients)
