@@ -7,3 +7,12 @@
 2019-12-02
     1. If read conf failed, don't reload conf.
     2. Optimize the error message for page modification of site info or display info.
+    3. Change log rotating size to
+          INFO 200M
+          ERROR 20M
+    4. Fix log conf error
+2019-12-17
+    1. Fix platform ORPHAN extend button problem.
+    2. Re-organize room definition.
+    3. Fix the problem backend message pushing would cause collecting failure.
+    4. Add CD/JV code.

@@ -37,7 +37,7 @@
             <ul id="x-wiki-index" class="uk-nav uk-nav-side" style="margin-right:-15px;">
                 {%  for site in sites %}
                   <div id="menu-{{ site.site_name }}" depth="0" style="position:relative;margin-left:15px;" class="uk-active" expand="true">
-                    {% ifnotequal site 'ORPHAN' %}
+                    {% ifnotequal site.site_name 'ORPHAN' %}
                     <i onclick="toggleWikiNode(this)" class="uk-icon-minus-square-o" style="position:absolute;margin-left:-1em;padding-top:8px;"></i>
                     {% endifnotequal %}
                     <a href="#div-{{ site.site_name }}" class="x-wiki-index-item">{{site.site_name}}</a>

@@ -117,9 +117,10 @@ class RunCollect:
     self.node_ids.add(self.vm.get_id())
 
   @myLogging.log('RunCollect')
-  def process_direct_ssh_node(self, host):
+  def process_direct_ssh_node(self, host, name):
     myLogging.logger.info('To process a direct ssh node:')
     self.vm.set_user('system')
+    self.vm.set_host(name)
     try:
       self.vm.init_ssh()
     except Exception, e:
@@ -148,11 +149,13 @@ class RunCollect:
                          'Platform': self.vm.get_platform(),
                          })
 
-  def process_pm_only_node(self):
+  def process_pm_only_node(self, name):
     myLogging.logger.info('To process a pm only node:')
     #self.vm.attr.update({'Ping_reachable': "N"}) # default value.
-    script = parseUtil.gen_script(map(lambda x: x.strip(), self.conf.get_cmd_list()), self.vm.vm_state['Name'],
-                                  not self.conf.try_virsh_console() or self.pm.is_ping_reachable(self.vm.vm_state['Name']))
+    use_ssh = not self.conf.try_virsh_console() or self.pm.is_ping_reachable(name)
+    script = parseUtil.gen_script(map(lambda x: x.strip(), self.conf.get_cmd_list()),
+                                  name if use_ssh else self.vm.vm_state['Name'],
+                                  use_ssh)
     self.pm.execute_script(script)
     parseUtil.parse_output(self.pm.stdout, self.vm)
     self.vm.attr.update({'Host': self.pm.get_hostname()})
@@ -171,18 +174,21 @@ class RunCollect:
 
   @myLogging.log('RunCollect')
   def send_req2web(self, is_completed=False):
-    inst = self.current_rs.get_db_inst()
-    req = requests.post(self.conf.get_para('backend_push_link'),
-                        data={
-                                                                  'site': inst.Current_platform.Site,
-                                                                  'pf': inst.Current_platform.Platform,
-                                                                  'begin': inst.Begin,
-                                                                  'end': inst.End,
-                                                                  'state': 'Completed' if is_completed else 'Collecting',
-                                                                  'counter': inst.Counter,
-                                                                },
-                        timeout=self.conf.get_para_float('backend_push_timeout'))
-    myLogging.logger.info("req: %s" % req)
+    try:
+      inst = self.current_rs.get_db_inst()
+      req = requests.post(self.conf.get_para('backend_push_link'),
+                          data={
+                                                                    'site': inst.Current_platform.Site,
+                                                                    'pf': inst.Current_platform.Platform,
+                                                                    'begin': inst.Begin,
+                                                                    'end': inst.End,
+                                                                    'state': 'Completed' if is_completed else 'Collecting',
+                                                                    'counter': inst.Counter,
+                                                                  },
+                          timeout=self.conf.get_para_float('backend_push_timeout'))
+      myLogging.logger.info("req: %s" % req)
+    except:
+      myLogging.logger.error("Exception in send_req2web!")
 
   @myLogging.log('RunCollect')
   def collect_vm_info(self):
@@ -227,7 +233,7 @@ class RunCollect:
         for c_node in self.conf.get_site_platform_nodelist(site, pf):
           self.vm = None
           self.pm = None
-          v_nodes = filter(lambda x: x['Name'] == c_node, self.vm_list)
+          v_nodes = filter(lambda x: parseUtil.node_equal(x['Name'], c_node), self.vm_list)
           # vm is in a physical machine
           if len(v_nodes) > 1:
             myLogging.logger.error("Too many same name nodes: %s!"% v_nodes)
@@ -235,6 +241,7 @@ class RunCollect:
             # only check the 1st vm
             vm_state = v_nodes[0]
             self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'])
+            self.vm.set_conf_name(c_node)
             self.pm = physicalMachine.HostMachine(self.pm_login_map[vm_state['Host']])
             self.pm.init_ssh()
             if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():
@@ -250,14 +257,15 @@ class RunCollect:
               time.sleep(self.conf.get_para_float('wait_vm_start_sleep_time'))
             # Now vm is running, begin to check its info
             myLogging.logger.info("To check conf vm node: %s" % vm_state)
-            ret = parseUtil.ping_a_node(vm_state['Name'])
+            ret = parseUtil.ping_a_node(c_node)
             myLogging.logger.info('Ping result: %d' % ret)
             if not ret:
               # The node could be reached directly, use ssh.
-              self.process_direct_ssh_node(self.pm.get_hostname())
+              # if c_node not equal vm_state['Name'], like 'umerod002lit' vs 'umerod002li'
+              self.process_direct_ssh_node(self.pm.get_hostname(), c_node)
             else:
               # The node could not be reached directly, use script via host machine.
-              self.process_pm_only_node()
+              self.process_pm_only_node(c_node)
             # Now save vm info
             self.vm.save()
             self.node_ids.add(self.vm.get_id())
@@ -270,9 +278,11 @@ class RunCollect:
             myLogging.logger.info('Ping result: %d' % ret)
             if not ret:  # the node could be reaching
               self.vm = virtMachine.VirMachine(c_node)
-              self.process_direct_ssh_node('')
+              self.vm.set_conf_name(c_node)
+              self.process_direct_ssh_node('', c_node)
             else:
               self.vm = virtMachine.VirMachine(c_node, 'N')
+              self.vm.set_conf_name(c_node)
               self.vm.attr.update({'Ping_reachable': "N",
                                    'Platform': self.vm.get_platform(),
                                    })
@@ -287,7 +297,8 @@ class RunCollect:
     self.current_rs = sqlRunState.SQLRunState(begin=None, pf=current_pf)
     self.current_rs.save()
     self.send_req2web()
-    for vm_state in (x for x in filter(lambda x: x['Name'] not in self.conf.get_all_nodes(), self.vm_list)):
+    for vm_state in (x for x in filter(lambda x: parseUtil.node_not_in_list(x['Name'], self.conf.get_all_nodes()),
+                                       self.vm_list)):
       myLogging.logger.info("To check orphan node: %s" % vm_state)
       self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'], True)
       self.pm = physicalMachine.HostMachine(self.pm_login_map[vm_state['Host']])
@@ -304,7 +315,7 @@ class RunCollect:
                               self.conf.get_para_float('wait_vm_start_sleep_time'))
         time.sleep(self.conf.get_para_float('wait_vm_start_sleep_time'))
       # Now vm is running
-      self.process_pm_only_node()
+      self.process_pm_only_node(vm_state['Name'])
       self.vm.save()
       self.node_ids.add(self.vm.get_id())
       if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():

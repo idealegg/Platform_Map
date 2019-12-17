@@ -233,3 +233,24 @@ def ping_a_node(n):
     #ret = os.system('ping -c 2 -W 2 %s >/dev/null 2>&1' % n)
     ret = os.system('ping -c 2 -W 2 %s' % n)
   return ret
+
+
+def node_equal(n1, n2):
+  if os.environ['PLAT_FORM_SITE'] == 'JV':
+    return n1 == n2
+  else:
+    if n1.endswith('t') or n1.endswith('s') or n1.endswith('x'):
+      n1 = n1[:-1]
+    if n2.endswith('t') or n2.endswith('s') or n2.endswith('x'):
+      n2 = n2[:-1]
+    return n1 == n2
+
+
+def node_not_in_list(n, l):
+  if os.environ['PLAT_FORM_SITE'] == 'JV':
+    return n not in l
+  else:
+    if n.endswith('t') or n.endswith('s') or n.endswith('x'):
+      n = n[:-1]
+    l2 = filter(lambda x: node_equal(x, n), l)
+    return not len(l2)

@@ -114,31 +114,42 @@ class Conf:
     return True
 
   def get_physical_host_list(self):
-    return self.config['host']['list']
+    tmp = self.config['host']['list']
+    tmp.sort()
+    return tmp
 
   def get_display_host_list(self):
-    return self.config['display']['list']
+    tmp = self.config['display']['list']
+    tmp.sort()
+    return tmp
 
   def get_site_list(self):
-    return self.config['site'].keys()
+    tmp = self.config['site'].keys()
+    tmp.sort()
+    return tmp
 
   def get_site(self, site):
     return self.config['site'][site]
 
   def get_site_platform_list(self, site):
-    return self.config['site'][site].keys()
+    tmp = self.config['site'][site].keys()
+    tmp.sort()
+    return tmp
 
   def get_site_platform(self, site, platform):
     return self.config['site'][site][platform]
 
   def get_site_platform_nodelist(self, site, platform):
-    return self.config['site'][site][platform]['list']
+    tmp = self.config['site'][site][platform]['list']
+    tmp.sort()
+    return tmp
 
   def get_all_nodes(self):
     if not self.nodes:
       for site in self.config['site'].keys():
         for platform in self.config['site'][site].keys():
           self.nodes.extend(self.config['site'][site][platform]['list'])
+    self.nodes.sort()
     return self.nodes
 
   def try_virsh_console(self):
