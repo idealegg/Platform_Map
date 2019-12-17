@@ -37,6 +37,9 @@ class Machine(object):
   def set_user(self, user):
     self.user = user
 
+  def set_host(self, host):
+    self.host = host
+
   def set_connect_timeout(self, timeout):
     self.connect_timeout = timeout
 

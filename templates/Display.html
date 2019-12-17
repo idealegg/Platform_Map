@@ -25,18 +25,10 @@
             </ul>
             <ul id="x-wiki-index" class="uk-nav uk-nav-side" style="margin-right:-15px;width: 200px">
                 {%  for floor in rooms %}
-                    {% if forloop.first %}
-                    <div id="menu-floor-15" depth="0" style="position:relative;margin-left:15px;" class="uk-active" expand="true">
-                    {% else %}
-                    <div id="menu-floor-16" depth="0" style="position:relative;margin-left:15px;" class="uk-active" expand="true">
-                    {% endif %}
+                    <div id="menu-floor-{{ forloop.counter }}" depth="0" style="position:relative;margin-left:15px;" class="uk-active" expand="true">
                         <i onclick="toggleWikiNode(this)" class="uk-icon-minus-square-o" style="position:absolute;margin-left:-1em;padding-top:4px;"></i>
-                        {% if forloop.first %}
-                        <label class="x-wiki-index-item" style="width: 200px;color: #336699;">15层:</label>
-                        {% else %}
-                        <label class="x-wiki-index-item" style="width: 200px;color: #336699;">16层:</label>
-                        {% endif %}
-                        {% for room in floor %}
+                        <label class="x-wiki-index-item" style="width: 200px;color: #336699;">{{ floor.name }}</label>
+                        {% for room in floor.rooms %}
                         <div id="menu-{{ room.short }}" depth="1" style="position: relative; margin-left: 15px;">
                             <a href="#div-floor-{{ room.short }}" class="x-wiki-index-item" style="width: 115px">{{ room.short }}&nbsp;{{room.name}}</a>
                         </div>
@@ -69,7 +61,7 @@
                 {% for d in room_info.ds %}
 
                 <div id='div-{{ d.n.Host_name }}' class="column_item">
-                    <div class="dm_host">{{ d.n.Host_name }}</div>
+                    <div class="dm_host">{{ d.n.Node }}</div>
                     <div id="error_message" style="height: 20px"></div>
                     <div class="dpy_info">
 

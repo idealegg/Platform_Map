@@ -20,9 +20,19 @@ class VirMachine(Machine, SQLOperator):
     self.cmdList = None
     self.cmdOut = {}
     self.attr = self.vm_state
+    self.conf_name = self.vm_state['Name']
     self.set_filter_function(node.objects.filter)
 
+  def set_conf_name(self, name):
+    self.conf_name = name
+    self.attr['Name'] = name
+
+  def set_name(self, name):
+    self.attr['Name'] = name
+
   def save(self):
+    if self.conf_name != self.attr['Name']:
+      self.attr['Name'] = self.conf_name
     self.db_inst = node(**self.attr)
     self.insert_or_update(self.db_inst, filters={'Name': self.attr['Name']})
 
@@ -40,6 +50,9 @@ class VirMachine(Machine, SQLOperator):
           x_set = X_server.objects.filter(Display_machine=dm, Port=port)
         else:
           x_set = X_server.objects.filter(Host=host, Port=port)
+          if host.endswith('t') or host.endswith('s') or host.endswith('x'):
+            if not x_set.count():
+              x_set = X_server.objects.filter(Host=host[:-1], Port=port)
         if x_set.count():
           return x_set[0]
     return None

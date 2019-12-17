@@ -27,28 +27,42 @@ import json
 
 MAX_WEB_CONNECTION = 5
 ORPHAN_NAME = 'ORPHAN'
-ROOM_MAPPING = [
-  [{'short': 'EQP', 'name': '开放办公室1'},
-  {'short': 'IHP', 'name': '开放办公室2'},
-  {'short': 'HDS', 'name': '开放办公室3'},
-  {'short': 'MER', 'name': '1号会议室'},
-  {'short': 'SGN', 'name': '2号会议室'}], # floor 15
-  [{'short': 'PMO', 'name': '项目部'},
-  {'short': 'GMO', 'name': '总经理'},
-  {'short': 'HIM', 'name': '开放办公室'},
-  {'short': 'NAM', 'name': '验收室'},
-  {'short': 'SHI', 'name': '培训教室'},
-  {'short': 'KAN', 'name': '会议室'},
-  {'short': 'YAM', 'name': '电话室1'},
-  {'short': 'MAN', 'name': '电话室2'},
-  {'short': 'MKT', 'name': '市场部'},
-  {'short': 'TDO', 'name': '技术总监'},
-  {'short': 'DGM', 'name': '副总经理'},
-  {'short': 'FIN', 'name': '财务办公室'}], # floor 16
-]
+if os.environ['PLAT_FORM_SITE'] == 'JV':
+  ROOM_MAPPING = [
+    {'name': '15层', 'rooms':
+     [{'short': 'EQP', 'name': '开放办公室1'},
+      {'short': 'IHP', 'name': '开放办公室2'},
+      {'short': 'HDS', 'name': '开放办公室3'},
+      {'short': 'MER', 'name': '1号会议室'},
+      {'short': 'SGN', 'name': '2号会议室'}]
+     }, # floor 15
+    {'name': '16层', 'rooms':
+     [{'short': 'PMO', 'name': '项目部'},
+      {'short': 'GMO', 'name': '总经理'},
+      {'short': 'HIM', 'name': '开放办公室'},
+      {'short': 'NAM', 'name': '验收室'},
+      {'short': 'SHI', 'name': '培训教室'},
+      {'short': 'KAN', 'name': '会议室'},
+      {'short': 'YAM', 'name': '电话室1'},
+      {'short': 'MAN', 'name': '电话室2'},
+      {'short': 'MKT', 'name': '市场部'},
+      {'short': 'TDO', 'name': '技术总监'},
+      {'short': 'DGM', 'name': '副总经理'},
+      {'short': 'FIN', 'name': '财务办公室'}]
+     }, # floor 16
+  ]
+else:
+  ROOM_MAPPING = [
+    {'name': '内厅', 'rooms':
+      [{'short': 'CDT', 'name': '办公区'}]
+    },
+    {'name': '外厅', 'rooms':
+      [{'short': 'BEC', 'name': '平台区'}]
+    },
+  ]
 rooms = []
 for room_map in ROOM_MAPPING:
-  rooms.extend(map(lambda x: x['short'], room_map))
+  rooms.extend(map(lambda x: x['short'], room_map['rooms']))
 DESC_PATTERN = re.compile('^\s*Description\s*[:=]')
 OWNER_PATTERN = re.compile('^\s*Owner\s*[:=]')
 VAILID_PATTERN = re.compile('^\s*Validity\s*[:=]')
@@ -261,7 +275,7 @@ def display(request):
   room_infos = []
   ds = display_machine.objects.all()
   for room in rooms:
-    ds_a_room = ds.filter(Host_name__startswith=room.lower()).order_by('Host_name')
+    ds_a_room = ds.filter(Node__startswith=room.lower()).order_by('Node')
     a_room = []
     for d in ds_a_room:
       x_servers = X_server.objects.filter(Display_machine=d).order_by('Tty')
@@ -286,7 +300,7 @@ def display(request):
   #print "ds: %s" % ds
   myLogging.logger.info("room_infos: %s" % room_infos)
   return render(request, 'Display.html', {'room_infos': room_infos,
-                                          'rooms': ROOM_MAPPING,
+                                           'rooms': ROOM_MAPPING,
                                           })
 
 
