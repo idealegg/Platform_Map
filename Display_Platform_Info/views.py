@@ -23,11 +23,12 @@ from dwebsocket.decorators import accept_websocket
 import threading
 import datetime
 import json
+import chardet
 
 
 MAX_WEB_CONNECTION = 5
 ORPHAN_NAME = 'ORPHAN'
-if os.environ['PLAT_FORM_SITE'] == 'JV':
+if 'PLAT_FORM_SITE' not in os.environ or os.environ['PLAT_FORM_SITE'] == 'JV':
   ROOM_MAPPING = [
     {'name': '15层', 'rooms':
      [{'short': 'EQP', 'name': '开放办公室1'},
@@ -103,6 +104,8 @@ def write_back_to_conf(pf):
       lines = []
       for line in fd:
         if not completed:
+          if type(line) is not unicode:
+            line = line.decode('utf8')
           ret = re.search(SITE_PATTERN, line)
           if ret:
             site_found = True
@@ -137,7 +140,7 @@ def write_back_to_conf(pf):
                   if not written['Validity']:
                     line = "".join([line, 'Validity: %s\n' % pf.Validity])
         lines.append(line)
-      fd2.write(''.join(lines))
+      fd2.write(''.join(lines).encode('utf8'))
   myLogging.logger.info("To delete conf file!")
   os.unlink(conf)
   myLogging.logger.info("To rename new conf file!")

@@ -199,6 +199,7 @@ class RunCollect:
       myLogging.logger.info('Conf changed.')
       myLogging.logger.info('Un-modified pf: %s.' % self.unmodified_pfs)
       completed_pfs = map(lambda x: platform.objects.get(Site=x[0], Platform=x[1]), self.unmodified_pfs)
+      self.unmodified_pfs = []
       rss = run_state.objects.filter(id__in=map(lambda x: x.id, completed_pfs))
       rss.update(Counter=F('Counter')+1)
       sqlRunState.SQLRunState.run_state_ids.update(map(lambda x: x.id, rss))

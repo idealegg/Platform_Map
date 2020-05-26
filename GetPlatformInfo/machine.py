@@ -17,7 +17,7 @@ class Machine(object):
     self.host = tmp[0]
     self.port = 22
     self.user = "root"
-    self.passwd = "abc123"
+    self.passwd = "******"
     if len(tmp) > 1:
       self.port = int(tmp[1])
     if len(tmp) > 2:

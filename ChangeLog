@@ -16,3 +16,12 @@
     2. Re-organize room definition.
     3. Fix the problem backend message pushing would cause collecting failure.
     4. Add CD/JV code.
+2019-12-18
+    1. Fix bug that add/del site not to trigger re-collect.
+2020-01-07
+    1. Fix bug that conf change would cause some platforms not checked again.
+2020-05-12
+    1. Fix the problem loop when check vm is starting if vm cannot be started.
+    2. Change PM passwd.
+2020-05-15
+    1. Support Chinese in desc/owner.
