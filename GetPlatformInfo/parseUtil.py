@@ -236,7 +236,7 @@ def ping_a_node(n):
 
 
 def node_equal(n1, n2):
-  if os.environ['PLAT_FORM_SITE'] == 'JV':
+  if 'PLAT_FORM_SITE' not in os.environ or os.environ['PLAT_FORM_SITE'] == 'JV':
     return n1 == n2
   else:
     if n1.endswith('t') or n1.endswith('s') or n1.endswith('x'):
@@ -247,7 +247,7 @@ def node_equal(n1, n2):
 
 
 def node_not_in_list(n, l):
-  if os.environ['PLAT_FORM_SITE'] == 'JV':
+  if 'PLAT_FORM_SITE' not in os.environ or os.environ['PLAT_FORM_SITE'] == 'JV':
     return n not in l
   else:
     if n.endswith('t') or n.endswith('s') or n.endswith('x'):

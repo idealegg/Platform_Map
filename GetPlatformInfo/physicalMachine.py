@@ -14,6 +14,7 @@ class HostMachine(Machine, SQLOperator):
     self.VMListPattern = re.compile('^\s*(\d+|-)\s+(\w+)\s+([\w ]+)')
     self.START_VM = 'virsh start %s'
     self.STOP_VM = 'virsh shutdown %s'
+    self.passwd = '********'
     self.vmInfo = []
     self.VmList = []
     self.attr = {'Node': host}
@@ -62,6 +63,7 @@ class HostMachine(Machine, SQLOperator):
       tmp = parseUtil.parse_cmd(cmd, self.stdout.read().split('\n'))
       if tmp['Ping_reachable'] == 'Y':
         return True
+      times -= 1
     return False
 
   def save(self):

@@ -220,7 +220,7 @@ class Conf:
     s_del = filter(lambda x: x not in ['host', 'display', 'parameter'], s1 ^ s_same)
     s_add = filter(lambda x: x not in ['host', 'display', 'parameter'], s2 ^ s_same)
     if s_del or s_add:
-      ret['mod'] = True
+      ret['site_mod'] = True
     if 'parameter' not in s_same or 'host' not in s_same or 'display' not in s_same:
       myLogging.logger.warning('Section "parameter" or "host" or "display" is not in new main.conf!')
       ret['ret'] = False
