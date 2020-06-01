@@ -12,7 +12,7 @@ class SQLPlatform(SQLOperator):
                  'Platform': pf,
                  'Description': conf['description'],
                  'Owner': conf['owner'],
-                 'Validity': conf['validity'],
+                 'Validity': conf['validity'] if conf['validity'] else None,
                  }
     self.set_filter_function(platform.objects.filter)
 

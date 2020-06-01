@@ -38,16 +38,20 @@
             </ul>
             <ul>
                 <li style="list-style:none;padding: 5px">
-                    <label class="tty_info" conflict="Y">&nbsp;&nbsp;</label>
-                    <label>&nbsp;&nbsp;conflict tty</label>
+                    <label class="node_info" conflict="Y" style="width: 15px">&nbsp;&nbsp;</label>
+                    <label>&nbsp;&nbsp;conflict</label>
                 </li>
                 <li style="list-style:none;padding: 5px">
-                    <label class="tty_info" active="True">&nbsp;&nbsp;</label>
-                    <label>&nbsp;&nbsp;active tty</label>
+                    <label class="tty_text" active="True" style="width: 15px">&nbsp;&nbsp;</label>
+                    <label>&nbsp;&nbsp;active</label>
                 </li>
             </ul>
-            <ul style="border: solid 2px ">
-                <label>Note: Double click node name to edit!</label>
+            <ul style="border: solid 2px;background: yellow;color: black;">
+                <div>Note:</div><br>
+                <div>1. Double click TTY name to edit active tty!</div><br>
+                <div>2. Double click NODE name to edit node display!</div><br>
+                <div>3. You can set the timeout for restart a node!</div><br>
+                <div>4. Key mapping fixed after restarting!</div>
             </ul>
         </div>
 
@@ -61,24 +65,31 @@
                 {% for d in room_info.ds %}
 
                 <div id='div-{{ d.n.Host_name }}' class="column_item">
-                    <div class="dm_host">{{ d.n.Node }}</div>
+                    <div class="dm_host">{{ d.n.Node }} ({{ d.n.os }})</div>
+                    <div>
+                        <label>Expected timeout:</label>
+                        <input type="text" id="timeout_value" style="width: 60px" value="180" onblur="onblurTimout(this)">
+                        <input type="hidden" value="180" >
+                        <label>Second(s)</label>
+                    </div>
                     <div id="error_message" style="height: 20px"></div>
                     <div class="dpy_info">
-
+                    <input type="hidden" id="last-modified-{{ d.n.Node }}" value="{{ d.n.n_t}}" />
                     {%  for x in d.xs %}
-
-                            <div class="tty_info" conflict="{{ x.conflict }}" active="{{ x.x.Active }}">
-                                <div class="tty_text">TTY{{ x.x.Tty }}</div>
-                                <div class="node_info">
+                            <div class="tty_info">
+                                <div class="tty_text" ondblclick="dbclick_display_tty(this)"  active="{{ x.x.Active }}">TTY{{ x.x.Tty }}</div>
+                                <div class="node_info" conflict="{{ x.conflict }}">
                                    {% ifequal x.n_name '' %}
-                                   <div class="node_text" title="{{ x.n_name }}" ondblclick="dbclick_tty_nodes(this)">&nbsp;</div>
+                                   <div class="node_text" title="{{ x.n_name }}" ondblclick="dbclick_display_nodes(this)">&nbsp;</div>
                                    {% else %}
-                                   <div class="node_text" title="{{ x.n_name }}" ondblclick="dbclick_tty_nodes(this)">{{ x.n_name }}</div>
+                                   <div class="node_text" title="{{ x.n_name }}" ondblclick="dbclick_display_nodes(this)">{{ x.n_name }}</div>
                                        {% for nod in x.n_time %}
                                        <input type="hidden" id="last-modified-{{ nod.n }}" value="{{ nod.t }}" />
                                        {% endfor %}
                                    {% endifequal %}
                                 </div>
+                                <button class="restart_btn " id="restart_mmi-{{ d.n.Node }}-{{ x.x.Tty }}"  onclick="onclick_restart_mmi_btn(this)">Restart</button>
+                                <!--button class="uk-button uk-button-primary restart_btn " id="restart_mmi-{{ d.n.Node }}-{{ x.x.Tty }}"  onclick="onclick_restart_mmi_btn(this)" style="font-size: 10px;padding: 1px;">Restart</button-->
                                 <div class="clear_float"></div>
                             </div>
 

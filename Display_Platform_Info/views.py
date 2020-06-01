@@ -11,6 +11,7 @@ from django.db import transaction
 import GetPlatformInfo.runCollect as runCollect
 import GetPlatformInfo.myLogging as myLogging
 import GetPlatformInfo.virtMachine as virtMachine
+import GetPlatformInfo.xServer as xServer
 
 from django.views.decorators.csrf import csrf_exempt
 from Display_Platform_Info.models import node, host_machine, display_machine, X_server, run_state
@@ -23,7 +24,7 @@ from dwebsocket.decorators import accept_websocket
 import threading
 import datetime
 import json
-import chardet
+import time
 
 
 MAX_WEB_CONNECTION = 5
@@ -31,25 +32,29 @@ ORPHAN_NAME = 'ORPHAN'
 if 'PLAT_FORM_SITE' not in os.environ or os.environ['PLAT_FORM_SITE'] == 'JV':
   ROOM_MAPPING = [
     {'name': '15层', 'rooms':
-     [{'short': 'EQP', 'name': '开放办公室1'},
-      {'short': 'IHP', 'name': '开放办公室2'},
-      {'short': 'HDS', 'name': '开放办公室3'},
-      {'short': 'MER', 'name': '1号会议室'},
-      {'short': 'SGN', 'name': '2号会议室'}]
+     [
+      #{'short': 'EQP', 'name': '开放办公室1'}
+      {'short': 'IHP', 'name': '开放办公室2'}
+      ,{'short': 'HDS', 'name': '开放办公室3'}
+      #,{'short': 'MER', 'name': '1号会议室'}
+      #,{'short': 'SGN', 'name': '2号会议室'}
+     ]
      }, # floor 15
     {'name': '16层', 'rooms':
-     [{'short': 'PMO', 'name': '项目部'},
-      {'short': 'GMO', 'name': '总经理'},
-      {'short': 'HIM', 'name': '开放办公室'},
-      {'short': 'NAM', 'name': '验收室'},
-      {'short': 'SHI', 'name': '培训教室'},
-      {'short': 'KAN', 'name': '会议室'},
-      {'short': 'YAM', 'name': '电话室1'},
-      {'short': 'MAN', 'name': '电话室2'},
-      {'short': 'MKT', 'name': '市场部'},
-      {'short': 'TDO', 'name': '技术总监'},
-      {'short': 'DGM', 'name': '副总经理'},
-      {'short': 'FIN', 'name': '财务办公室'}]
+     [
+      #{'short': 'PMO', 'name': '项目部'},
+      #{'short': 'GMO', 'name': '总经理'},
+      {'short': 'HIM', 'name': '开放办公室'}
+      #{'short': 'NAM', 'name': '验收室'},
+      #{'short': 'SHI', 'name': '培训教室'},
+      #{'short': 'KAN', 'name': '会议室'},
+      #{'short': 'YAM', 'name': '电话室1'},
+      #{'short': 'MAN', 'name': '电话室2'},
+      #{'short': 'MKT', 'name': '市场部'},
+      #{'short': 'TDO', 'name': '技术总监'},
+      #{'short': 'DGM', 'name': '副总经理'},
+      #{'short': 'FIN', 'name': '财务办公室'}
+     ]
      }, # floor 16
   ]
 else:
@@ -72,13 +77,19 @@ sockets = {}
 lock = threading.Lock()
 lock2 = threading.Lock()
 lock3 = threading.Lock()
+lock4 = threading.Lock()
+lock5 = threading.Lock()
 
 
 def datetime2str(dt):
+  if not dt:
+    return ''
   return "%s.%06d" % (dt.strftime('%Y-%m-%d %H:%M:%S'), dt.microsecond)
 
 
 def str2datetime(s):
+  if not s:
+    return datetime.datetime.min;
   return datetime.datetime(
     int(s[:4]),
     int(s[5:7]),
@@ -278,7 +289,7 @@ def display(request):
   room_infos = []
   ds = display_machine.objects.all()
   for room in rooms:
-    ds_a_room = ds.filter(Node__startswith=room.lower()).order_by('Node')
+    ds_a_room = ds.filter(Host_name__startswith=room.lower()).order_by('Host_name')
     a_room = []
     for d in ds_a_room:
       x_servers = X_server.objects.filter(Display_machine=d).order_by('Tty')
@@ -298,7 +309,12 @@ def display(request):
                        'x': x_server,
                        'conflict': 'Y',
                        'n_time': map(lambda x: {'n': x.Name, 't': datetime2str(x.Last_modified)}, ns)})
-      a_room.append({'n': d, 'xs': a_dm})
+      a_room.append({'n': {
+                            'Node': d.Node,
+                            'Host_name': d.Host_name,
+                            'n_t': datetime2str(d.Last_modified),
+                            'os': d.Thalix
+                           }, 'xs': a_dm})
     room_infos.append({'room': room, 'ds': a_room})
   #print "ds: %s" % ds
   myLogging.logger.info("room_infos: %s" % room_infos)
@@ -428,6 +444,131 @@ def submit_display(request):
   myLogging.logger.info('ret: %s' % ret)
   myLogging.logger.info('cx: %s' % ret_cx)
   return JsonResponse({'ret': ret, 'cx': ret_cx})
+
+
+@myLogging.log('views')
+@csrf_exempt
+def submit_restart_mmi(request):
+  ret = 'Failed'
+  n_t = ''
+  vm = None
+
+  def return2(ret1, rollback_restarting=True):
+    myLogging.logger.info('ret: %s' % ret1)
+    if rollback_restarting:
+      vm.save_restarting(False)
+    return JsonResponse({'ret': ret1, 'n_t': n_t})
+
+  if request.method == 'POST':
+    try:
+      host = request.POST.get('host').strip()
+      nd = request.POST.get('node').strip()
+      n_time = request.POST.get('n_time').strip()
+      timeout = int(request.POST.get('timeout').strip())
+      myLogging.logger.info("POST:\nhost: %s\nnode: %s\nn_time: %s\ntimeout: %d" % (host, nd, n_time, timeout))
+      start_time = time.time()
+      with transaction.atomic():
+        try:
+          node.objects.get(Name=nd, Last_modified=str2datetime(n_time))
+        except node.DoesNotExist:
+            return return2 ( 'Node modified by others, pls refresh!', False)
+        try:
+          node.objects.get(Name=nd, Last_modified=str2datetime(n_time), Restarting=False)
+        except node.DoesNotExist:
+          return return2('Node restarted by others, pls wait!', False)
+        vm = virtMachine.VirMachine(nd)
+        vm.set_user('system')
+        vm.save_restarting(True)
+      dm = display_machine.objects.get(Node=host)
+      if not vm.db_inst.CSCI.count('MMI'):
+        if not vm.stop_node(timeout - (time.time()-start_time)):
+          return return2('Stop node failed or timeout!')
+        if not vm.start_node(timeout - (time.time()-start_time)):
+          return return2('Start node failed or timeout!')
+      else:
+        #if not vm.stop_mmi(timeout - (time.time()-start_time)):
+        if not vm.stop_node(timeout - (time.time() - start_time)):
+          return return2('Stop mmi failed or timeout!')
+        if not vm.copy_key_mapping_files(dm.Thalix):
+          return return2('Copy key mapping files failed!')
+        #if not vm.start_mmi(timeout - (time.time()-start_time)):
+        if not vm.start_node(timeout - (time.time() - start_time)):
+          return return2('Start mmi failed or timeout!')
+      vm.save_restarting(False)
+      n_t = datetime2str(vm.db_inst.Last_modified)
+      ret = 'Successful'
+    except socket.gaierror:
+      myLogging.logger.exception('getaddrinfo failed in submit display!')
+      ret = 'Getaddrinfo failed'
+    except Exception, e:
+      myLogging.logger.exception('Exception in submit display!')
+      ret = "%s: %s" % (e.__class__.__name__, e.message)
+    finally:
+      if vm and vm.db_inst.Restarting:
+        vm.save_restarting(False)
+  myLogging.logger.info('ret: %s, n_t: %s' % (ret, n_t))
+  return JsonResponse({'ret': ret, 'n_t': n_t})
+
+
+@myLogging.log('views')
+@csrf_exempt
+def submit_tty(request):
+  ret = 'Failed'
+  locked = False
+  n_t = ''
+  if request.method == 'POST':
+    try:
+      host = request.POST.get('host').strip()
+      n_time = request.POST.get('n_time').strip()
+      tty = int(request.POST.get('tty').strip().replace('TTY', ''))
+      myLogging.logger.info("POST:\nhost: %s\ntty: %s\nn_time: %s" % (host, tty, n_time))
+      lock4.acquire()
+      locked = True
+      try:
+        dm = display_machine.objects.get(Node=host, Last_modified=str2datetime(n_time))
+      except display_machine.DoesNotExist:
+        if locked:
+          lock4.release()
+          locked = False
+        ret = 'Node modified by others, pls refresh!'
+        myLogging.logger.info('ret: %s' % ret)
+        return JsonResponse({'ret': ret, 'n_t': n_t})
+      n_t = datetime2str(dm.Last_modified)
+      xs = xServer.XServer(host)
+      try:
+        xs.init_ssh()
+      except Exception, e:
+        ret = 'Init ssh failed!'
+        myLogging.logger.info('ret: %s' % ret)
+        if locked:
+          lock4.release()
+          locked = False
+        return JsonResponse({'ret': ret, 'n_t': n_t})
+      xs.execute_cmd('chvt %d' % tty)
+      xs.close_ssh()
+      x_new = X_server.objects.get(Host=host, Tty=tty)
+      with transaction.atomic():
+        x_olds = X_server.objects.filter(Display_machine=dm, Active=True).exclude(Tty=tty)
+        for x_old in x_olds:
+          x_old.Active = False
+          x_old.save()
+        x_new.Active = True
+        x_new.save()
+        dm.save()
+        ret = 'Successful'
+        n_t = datetime2str(dm.Last_modified)
+    except socket.gaierror:
+      myLogging.logger.exception('getaddrinfo failed in submit display!')
+      ret = 'Getaddrinfo failed'
+    except Exception, e:
+      myLogging.logger.exception('Exception in submit tty!')
+      ret = "%s: %s" % (e.__class__.__name__, e.message)
+    finally:
+      if locked:
+        lock4.release()
+        #locked = False
+  myLogging.logger.info('ret: %s, n_t: %s' % (ret, n_t))
+  return JsonResponse({'ret': ret, 'n_t': n_t})
 
 
 @myLogging.log('views')

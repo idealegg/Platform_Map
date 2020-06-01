@@ -3,6 +3,8 @@
 import ssh
 from GetPlatformInfo.parseUtil import parse_cmd
 import myLogging
+import Platform_Map.settings
+import platform
 
 
 class Machine(object):
@@ -17,7 +19,7 @@ class Machine(object):
     self.host = tmp[0]
     self.port = 22
     self.user = "root"
-    self.passwd = "******"
+    self.passwd = "abc123"
     if len(tmp) > 1:
       self.port = int(tmp[1])
     if len(tmp) > 2:
@@ -82,16 +84,28 @@ class Machine(object):
     #print self.stdout.read()
 
   @myLogging.log("Machine")
-  def execute_script(self, script):
-    myLogging.logger.info("Run script %s in %s" % (self.SCRIPT_PATH, self.host))
-    with open(self.SCRIPT_PATH, 'w') as f:
+  def execute_script(self, script, script_name=''):
+    if not script_name:
+      script_name = self.SCRIPT_PATH
+    myLogging.logger.info("Run script %s in %s" % (script_name, self.host))
+    local_f = "%s%s%s" % (Platform_Map.settings.BASE_DIR,
+                         "\\" if platform.system() == 'Windows' else "/",
+                         script_name)
+    with open(local_f, 'w') as f:
       f.write(script)
-    f_path = "$HOME/%s" % self.SCRIPT_PATH
-    self.tx_file(self.SCRIPT_PATH, self.SCRIPT_PATH)
+    f_path="$HOME/%s" % script_name
+    self.tx_file(local_f, script_name)
     self.stdin, self.stdout, self.stderr = self.ssh_client.exec_command("chmod u+x %s" % f_path)
     self.stdin, self.stdout, self.stderr = self.ssh_client.exec_command("dos2unix %s" % f_path)
     self.stdin, self.stdout, self.stderr = self.ssh_client.exec_command("%s 2>&1" % (f_path))
     # print self.stdout.read()
+
+  @myLogging.log("Machine")
+  def check_stderr(self):
+    tmp_out = self.stderr.read()
+    if tmp_out:
+      myLogging.logger.info("stderr: %s" % tmp_out)
+    return tmp_out
 
   @myLogging.log("Machine")
   def close_open_file(self):

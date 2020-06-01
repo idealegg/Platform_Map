@@ -232,7 +232,7 @@ class Conf:
       i1 = set(re.split('\s+', dict(old_conf.parser.items(s))['nodelist']))
       i2 = set(re.split('\s+', dict(new_conf.parser.items(s))['nodelist']))
       if s in ['host', 'display']:
-        ret['_'.join([s, 'mod'])] = bool(i1 ^ i2)
+        ret['_'.join([s, 'site_mod'])] = bool(i1 ^ i2)
       else:
         if not i1^i2:
           ret['site_same'].append(re.split('\s+', s))

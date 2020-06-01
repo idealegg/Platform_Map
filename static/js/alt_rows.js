@@ -198,7 +198,175 @@ function expandWikiNode(icons, rec) {
 
     }
 
-    function dbclick_tty_nodes(t) {
+    function dbclick_display_tty(t) {
+        //console.log('host:');
+        var $pppp = $(t).parents('.column_item');
+        var host = $pppp.find('.dm_host').text().split(' ')[0];
+        var $err = $pppp.find('#error_message');
+        var $old = $pppp.find('.tty_text[active="True"]');
+        var prefix = 'ChTTY: ';
+
+        if ($(t).attr('active') == 'True') {
+            $err.text(prefix+'No change');
+            $err.css('color', '#e28327');
+            return;
+        }
+
+        var $dpy = $(t).parents('.dpy_info');
+        var $n_t_i = $dpy.find('>input');
+        //console.log(host);
+        //console.log(tty);
+
+        var jqxhr = $.ajax({
+            url: '/submit_tty/',
+            async: true,
+            data: {
+                    host: host,
+                    tty: $(t).text(),
+                    n_time: $n_t_i.val()
+                },
+            dataType: 'json', type: "POST",
+        beforeSend: function () {
+            console.log('beforeSend');
+            $(t).css('outline', 'outset');
+            $err.text(prefix+'Submitting...');
+            $err.css('color', '#e28327');
+        },
+        success: function (res) {
+            console.log('success');
+            //console.log(res);
+            $err.text(prefix+res['ret']);
+            if (res['ret'] != 'Successful'){
+                $err.css('color', '#ff0000');
+            }else {
+                $err.css('color', '#00ff00');
+                $old.attr('active', 'False');
+                $(t).attr('active', 'True');
+                $n_t_i.val(res['n_t']);
+            }
+        },
+        complete: function () {
+            console.log('complete');
+            $(t).css('outline-style', 'none');
+        },
+        error: function (req, errmsg, exception) {
+            console.log('error');
+            console.log('errmsg'+errmsg);
+            console.log('exception'+exception);
+            $err.css('color', '#ff0000');
+            if (errmsg){
+                $err.text(prefix+errmsg);
+            }else{
+                $err.text(prefix+'Failed');
+            }
+        }
+    });
+
+    }
+
+
+    function onclick_restart_mmi_btn(t) {
+        //console.log('host:');
+        var $pppp = $(t).parents('.column_item');
+        var host = $pppp.find('.dm_host').text().split(' ')[0];
+        var $err = $pppp.find('#error_message');
+        var $timeout = $pppp.find('#timeout_value');
+
+        var $node_inf = $(t).parent();
+        var $node_txt = $node_inf.find('.node_text');
+        var $node_n = $node_txt.text();
+        var $n_t_i = $node_inf.find('#last-modified-'+$node_n.trim());
+        var prefix = 'Restart: ';
+        var counter = null;
+        var left_s = parseInt($timeout.val());
+
+        //console.log($node_inf);
+        //console.log($n_t_i);
+
+        if ($node_txt.text().trim() === ''){
+            $err.text(prefix+'Node should not empty!');
+            $err.css('color', '#ff0000');
+            return;
+        }
+
+        if ($node_txt.text().indexOf(' ') != -1){
+            $err.text(prefix+'Only allow to restart 1 node!');
+            $err.css('color', '#ff0000');
+            return;
+        }
+
+        function destroy_counter() {
+            if (counter) {
+                clearInterval(counter);
+                counter = null;
+            }
+            return;
+        }
+
+        function count() {
+            if (left_s > 0){
+                $err.css('color', '#e28327');
+                $err.text(prefix+'Left '+left_s +' seconds');
+            }
+            else {
+                destroy_counter();
+            }
+            left_s--;
+        }
+
+        //console.log(host);
+        //console.log(tty);
+
+        var jqxhr = $.ajax({
+            url: '/submit_restart_mmi/',
+            async: true,
+            data: {
+                    host: host,
+                    node: $node_txt.text(),
+                    n_time: $n_t_i.val(),
+                    timeout: $timeout.val()
+                },
+            dataType: 'json', type: "POST",
+        beforeSend: function () {
+            console.log('beforeSend');
+            $(t).attr('disabled', true);
+            counter = setInterval(count, 1000);
+        },
+        success: function (res) {
+            console.log('success');
+            destroy_counter();
+            //console.log(res);
+            $err.text(prefix+res['ret']);
+            if (res['ret'] != 'Successful'){
+                $err.css('color', '#ff0000');
+            }else {
+                $err.css('color', '#00ff00');
+                $n_t_i.val(res['n_t']);
+            }
+        },
+        complete: function () {
+            console.log('complete');
+            destroy_counter();
+            $(t).attr('disabled', false);
+        },
+        error: function (req, errmsg, exception) {
+            console.log('error');
+            destroy_counter();
+            console.log('errmsg'+errmsg);
+            console.log('exception'+exception);
+            $(t).attr('disabled', false);
+            $err.css('color', '#ff0000');
+            if (errmsg){
+                $err.text(prefix+errmsg);
+            }else{
+                $err.text(prefix+'Failed');
+            }
+        }
+    });
+
+    }
+
+    function dbclick_display_nodes(t) {
         function get_all_nodes(txt) {
             var ns = txt.split(' ').filter(function(x){return x!=''});
             var nodes = new Array();
@@ -218,7 +386,7 @@ function expandWikiNode(icons, rec) {
         var $pp = $(t).parents('.tty_info');
         var tty = $pp.find('.tty_text').text();
         var $pppp = $(t).parents('.column_item');
-        var host = $pppp.find('.dm_host').text();
+        var host = $pppp.find('.dm_host').text().split(' ')[0];
         var $err = $pppp.find('#error_message');
         //console.log(host);
         //console.log(tty);
@@ -228,6 +396,9 @@ function expandWikiNode(icons, rec) {
         var width = $(t).width();
         var roll_back = false;
         var node_inf = null;
+        var node_txt = null;
+        var prefix = 'ChNode: ';
+
         //var padding = $(t).css('padding-left');
         //给td设置宽度和给input设置宽度并赋值
         $(t).html("<input type='text'>").find("input").width(width).val(tdPreText.trim()).focus();
@@ -236,11 +407,11 @@ function expandWikiNode(icons, rec) {
         inputDom.blur(function () {
             var newText = $(this).val();
             if (newText.trim() === tdPreText.trim()){
-                $err.text('No change');
+                $err.text(prefix+'No change');
                 $err.css('color', '#e28327');
                 roll_back = true;
             }else if(newText.trim() === ''){
-                $err.text('Not allowed to remove!');
+                $err.text(prefix+'Not allowed to remove!');
                 $err.css('color', '#ff0000');
                 roll_back = true;
             }
@@ -261,13 +432,13 @@ function expandWikiNode(icons, rec) {
                     beforeSend: function () {
                         console.log('beforeSend');
                         $(t).parent().css('outline', 'outset');
-                        $err.text('Submitting...');
+                        $err.text(prefix+'Submitting...');
                         $err.css('color', '#e28327');
                     },
                     success: function (res) {
                         console.log('success');
                         //console.log(res);
-                        $err.text(res['ret']);
+                        $err.text(prefix+res['ret']);
                        // $b1.attr('disabled', false);
                         if (res['ret'] != 'Successful'){
                             tdDom.text(tdPreText);
@@ -283,18 +454,20 @@ function expandWikiNode(icons, rec) {
                                         function(x) {
                                             return $(this).text() === 'TTY'+cx['tty'];
                                         }).parent();
-                                    $tty_info.attr('conflict', cx['c']);
+                                    //console.log($tty_info);
+                                    node_txt = $tty_info.find('.node_text');
+                                    node_inf = $tty_info.find('.node_info');
+                                    //console.log(node_txt);
+                                    node_inf.attr('conflict', cx['c']);
+                                    $tty_info.find('input').remove();
                                     if (cx['ns'] === ''){
-                                        node_inf = $tty_info.find('.node_text');
-                                        node_inf.html('&nbsp;');
-                                        node_inf.attr('title', '');
+                                        node_txt.html('&nbsp;');
+                                        node_txt.attr('title', '');
                                     }else{
-                                        node_inf = $tty_info.find('.node_text');
-                                        node_inf.text(cx['ns']);
-                                        node_inf.attr('title', cx['ns']);
-                                        $tty_info.find('input').remove();
+                                        node_txt.text(cx['ns']);
+                                        node_txt.attr('title', cx['ns']);
                                         for(var t_i=0;t_i<cx['n_time'].length;t_i++){
-                                            node_inf.after('<input type="hidden" id="last-modified-'
+                                            node_txt.after('<input type="hidden" id="last-modified-'
                                             +cx['n_time'][t_i]['n']
                                             +'" value="'
                                             +cx['n_time'][t_i]['t']
@@ -315,9 +488,9 @@ function expandWikiNode(icons, rec) {
                         console.log('exception'+exception);
                         $err.css('color', '#ff0000');
                         if (errmsg){
-                            $err.text(errmsg);
+                            $err.text(prefix+errmsg);
                         }else{
-                            $err.text('Failed');
+                            $err.text(prefix+'Failed');
                         }
                         tdDom.text(tdPreText);
                         tdDom.attr('title', tdPreText);
@@ -332,6 +505,22 @@ function expandWikiNode(icons, rec) {
                 tdDom.attr('title', newText);
             }
         });
+    }
+
+    function onblurTimout(t) {
+        var $err = $(t).parents(".column_item").find('#error_message');
+        var $old = $(t).next();
+        var newText = $(t).val();
+        var oldText = $old.val();
+        $err.text("");
+        if ((newText.trim() === '')||(!parseInt(newText))||(newText < 180) ){
+            $err.text("Timeout should > 180");
+            $err.css('color', '#ff0000');
+            $(t).val(oldText);
+        }
+        else{
+            $old.val(newText);
+        }
     }
 
     function altBackendRow() {
