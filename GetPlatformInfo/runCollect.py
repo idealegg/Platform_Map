@@ -222,6 +222,7 @@ class RunCollect:
     # Check nodes in conf
     for site in self.conf.get_site_list():
       for pf in self.conf.get_site_platform_list(site):
+        myLogging.logger.info("Begin collect site [%s], pf [%s]" % (site, pf))
         current_pf = platform.objects.get(Site=site, Platform=pf)
         if current_pf in completed_pfs:
           myLogging.logger.info("Platform [%s %s] collect completed last time!" % (site, pf))
@@ -336,9 +337,9 @@ class RunCollect:
   def collect_display_info(self):
     xServer.XServer.xs_list = set()
     for host in self.conf.get_display_host_list():
-      dm = xServer.XServer(host)
+      xs = xServer.XServer(host)
       try:
-        dm.get_x_servers(self.conf.get_para_float('connect_timeout'))
+        xs.get_x_servers(self.conf.get_para_float('connect_timeout'))
       except Exception,e:
         if e.message.find('timed out') != -1:
           myLogging.logger.warning('Display machine [%s] connect timeout! Skip it!' % host)

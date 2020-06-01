@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import myLogging
+import time
 
 
 class SQLOperator(object):
@@ -18,25 +19,43 @@ class SQLOperator(object):
     self.__filter__ = func
 
   @myLogging.log('SQLOperator')
-  def insert_or_update(self, sql_object, filters):
+  def insert_or_update(self, sql_object, filters, kept=None):
+    retry = 10
+    sleep_time = 5
     ns = self.__filter__(**filters)
     myLogging.logger.debug( "sql_object: [%s], filters: [%s], ns: [%d]" % (sql_object, filters, ns.count()))
     if ns.count() > 1:
       myLogging.logger.warning( "Too much records %s found in table! Try to delete them!" % (filters))
       ns.delete()
     elif ns.count() == 1:
-      sql_object.id = ns[0].id
-      try:
-        sql_object.Created = ns[0].Created
-      except AttributeError:
-        pass
-      except Exception:
-        myLogging.logger.exception("Here could not reach! If error, the next step would fail!")
+      if not kept:
+        kept = set([])
+      kept.add('id')
+      kept.add('Created')
+      for attr in kept:
+        try:
+          setattr(sql_object, attr, getattr(ns[0], attr))
+        except AttributeError:
+          pass
+        except Exception:
+          myLogging.logger.exception("Here could not reach! If error, the next step would fail!")
       myLogging.logger.debug("id: %d" % sql_object.id)
-    try:
-      sql_object.save()
-    except Exception, e:
-      myLogging.logger.exception( "Save failed! %s error: %s" % (filters, e.message))
+    saved = False
+    while retry > 0:
+      try:
+        sql_object.save()
+        saved = True
+        break
+      except Exception, e:
+        if e.message == 'database is locked':
+          myLogging.logger.warning("Database is locked: %s, sleep %d s and retry: [%d]" % (filters, sleep_time, retry))
+          time.sleep(sleep_time)
+          retry -= 1
+        else:
+          myLogging.logger.exception( "Save failed! %s error: %s" % (filters, e.message))
+          break
+    if not saved and retry <= 0:
+      myLogging.logger.error("Save failed! Retry is run out! [%s]" % filters)
 
   def get_db_inst(self, filters=None):
     if self.db_inst:

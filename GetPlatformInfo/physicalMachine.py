@@ -14,7 +14,7 @@ class HostMachine(Machine, SQLOperator):
     self.VMListPattern = re.compile('^\s*(\d+|-)\s+(\w+)\s+([\w ]+)')
     self.START_VM = 'virsh start %s'
     self.STOP_VM = 'virsh shutdown %s'
-    self.passwd = '********'
+    self.passwd = 'B1e2s3t4'
     self.vmInfo = []
     self.VmList = []
     self.attr = {'Node': host}

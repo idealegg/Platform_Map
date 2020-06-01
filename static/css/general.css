@@ -134,7 +134,7 @@
         background: #efefef;
         overflow-y:scroll;
         overflow-x: hidden;
-        width:220px;
+        width:270px;
         height:200px;
         padding: 2px;
     }
@@ -146,15 +146,15 @@
         color: #1a1a1a;
         padding: 2px;
         height: 24px;
-        width: 195px;
+        width: 245px;
     }
 
-    .tty_info[conflict="Y"] {
+    .node_info[conflict="Y"] {
         background: #dd0055;
         color: yellow;
     }
 
-    .tty_info[active="True"] {
+    .tty_text[active="True"] {
         background: #00ff00;
     }
 
@@ -178,6 +178,16 @@
         float:left;
     }
 
+    .restart_btn {
+        margin:1px;
+        border:solid 2px #034c50;
+        border-radius: 5px;
+        padding: 1px;
+        background: #00a8e6;
+        width: 48px;
+        height: 20px;
+        float:left;
+    }
     .node_text {
         /*width: 100%;*/
         padding-left: 3px;

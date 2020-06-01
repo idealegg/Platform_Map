@@ -25,3 +25,15 @@
     2. Change PM passwd.
 2020-05-15
     1. Support Chinese in desc/owner.
+2020-05-29
+    1. Add tty change function.
+    2. Add restart mmi/node function.
+2020-06-01
+    1. Fix bug that no platform insert if validate from conf is null.
+    2. Adjust parameter for muti visit to database, add a loop to update database.
+    3. Collapse platform page.
+    4. Display a interval timer for restart node.
+    5. Prompt more info for display page.
+    6. Only start/stop node, no mmi more.
+    7. Add Restarting flag for node.
+    8. Optimise the logic to update a node.

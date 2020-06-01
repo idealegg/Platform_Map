@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from GetPlatformInfo.sqlOperator import SQLOperator
-from Display_Platform_Info.models import run_state
+from Display_Platform_Info.models import run_state, platform
 import myLogging
 import datetime
 
@@ -49,8 +49,8 @@ class SQLRunState(SQLOperator):
         if rss2.count():
           SQLRunState.current_counter = max_c
           rss3 = rss.filter(State='Completed')
-          complete_pfs = map(lambda x: x.Current_platform, rss3)
           SQLRunState.run_state_ids.update(map(lambda x: x.id, rss3))
+          complete_pfs = map(lambda x: x.Current_platform, rss3)
         else:
           SQLRunState.current_counter = max_c + 1
       else:

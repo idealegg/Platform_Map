@@ -43,6 +43,10 @@ class display_machine(models.Model):
   Node = models.CharField(max_length=20, unique=True)
   IP = models.CharField(max_length=100, default='')
   Host_name = models.CharField(max_length=20, default='')
+  Thalix = models.CharField(max_length=10, default='11.0')
+  Last_modified = models.DateTimeField(auto_now=True)
+  Created = models.DateTimeField(auto_now_add=True)
+
 
   class Meta:
     db_table = 'display_machine'
@@ -84,6 +88,7 @@ class node(models.Model):
   Config = models.CharField(max_length=100, default='')
   CSCI = models.CharField(max_length=100, default='')
   Platform = models.ForeignKey(platform, on_delete=models.SET_NULL, null=True, default=None)
+  Restarting = models.BooleanField(default=False)
   Last_modified = models.DateTimeField(auto_now=True)
   Created = models.DateTimeField(auto_now_add=True)
 
