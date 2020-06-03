@@ -11,6 +11,7 @@ from django.db import transaction
 import GetPlatformInfo.runCollect as runCollect
 import GetPlatformInfo.myLogging as myLogging
 import GetPlatformInfo.virtMachine as virtMachine
+import GetPlatformInfo.physicalMachine as physicalMachine
 import GetPlatformInfo.xServer as xServer
 
 from django.views.decorators.csrf import csrf_exempt
@@ -34,8 +35,8 @@ if 'PLAT_FORM_SITE' not in os.environ or os.environ['PLAT_FORM_SITE'] == 'JV':
     {'name': '15层', 'rooms':
      [
       #{'short': 'EQP', 'name': '开放办公室1'}
-      {'short': 'IHP', 'name': '开放办公室2'}
-      ,{'short': 'HDS', 'name': '开放办公室3'}
+      {'short': 'IHP', 'name': '内部平台'}
+      ,{'short': 'HDS', 'name': '横断山脉'}
       #,{'short': 'MER', 'name': '1号会议室'}
       #,{'short': 'SGN', 'name': '2号会议室'}
      ]
@@ -44,7 +45,7 @@ if 'PLAT_FORM_SITE' not in os.environ or os.environ['PLAT_FORM_SITE'] == 'JV':
      [
       #{'short': 'PMO', 'name': '项目部'},
       #{'short': 'GMO', 'name': '总经理'},
-      {'short': 'HIM', 'name': '开放办公室'}
+      {'short': 'HIM', 'name': '喜马拉雅山脉'}
       #{'short': 'NAM', 'name': '验收室'},
       #{'short': 'SHI', 'name': '培训教室'},
       #{'short': 'KAN', 'name': '会议室'},
@@ -299,21 +300,17 @@ def display(request):
         #print "x:[%s %d], n:[%s]" % (x_server.Host, x_server.Tty, map(lambda x: x.Name, ns))
         if not ns.count():
           a_dm.append({'n_name': '', 'x': x_server, 'conflict': 'N', 'n_time': []})
-        elif ns.count() == 1:
-          a_dm.append({'n_name': ns[0].Name,
-                       'x': x_server,
-                       'conflict': 'N',
-                       'n_time': [{'n': ns[0].Name, 't': datetime2str(ns[0].Last_modified)}]})
         else:
           a_dm.append({'n_name': ' '.join(map(lambda x: x.Name, ns)),
                        'x': x_server,
-                       'conflict': 'Y',
-                       'n_time': map(lambda x: {'n': x.Name, 't': datetime2str(x.Last_modified)}, ns)})
+                       'conflict': 'N' if ns.count() == 1 else 'Y',
+                       'n_time': map(lambda x: {'n': x.Name, 't': datetime2str(x.Last_modified), 'r': x.Running}, ns),
+                       })
       a_room.append({'n': {
                             'Node': d.Node,
                             'Host_name': d.Host_name,
                             'n_t': datetime2str(d.Last_modified),
-                            'os': d.Thalix
+                            'os': d.Thalix,
                            }, 'xs': a_dm})
     room_infos.append({'room': room, 'ds': a_room})
   #print "ds: %s" % ds
@@ -326,7 +323,9 @@ def display(request):
 @myLogging.log('views')
 def change_x11_fw(vm, x):
   err = 'Successful'
-  cmd = '''
+  pm = None
+  if x:
+    cmd = '''
   cat << EOF > /etc/xinetd.d/x11-fw
 service x11-fw
 {
@@ -343,12 +342,21 @@ service x11-fw
 }
 EOF
   ''' % (x.Host, x.Port)
+  else:
+    cmd = 'rm /etc/xinetd.d/x11-fw'
+  if vm.db_inst.Running == 'N':
+    pm = physicalMachine.HostMachine(vm.db_inst.Host)
+    pm.init_ssh()
+    if pm.start_vm(vm)['Controlled'] == 'N' or not pm.wait_vm_start(vm, 30):
+      err = 'Node failed to start!'
+      myLogging.logger.error(err)
+      return err
   vm.init_ssh()
   vm.execute_cmd(cmd, redirect_stderr=False)
   stderr = vm.stdout.read()
   if stderr:
     vm.close_ssh()
-    err = "Write x11-fw error!"
+    err = "%s x11-fw error!" % ('Write' if x else 'Delete')
     myLogging.logger.error(err)
     return err
   vm.execute_cmd('service xinetd reload', redirect_stderr=False)
@@ -361,6 +369,9 @@ EOF
   #  myLogging.logger.error(err)
   #  return err
   vm.close_ssh()
+  if vm.db_inst.Running == 'N':
+    pm.stop_vm(vm)
+    pm.close_ssh()
   vm.set_x_server(x)
   return err
 
@@ -403,11 +414,11 @@ def submit_display(request):
       nodes2.sort()
       if cmp(nodes, nodes2) != 0:
         with transaction.atomic():
-          for n in [y for y in nodes if y not in nodes2]:
+          for n in [y for y in nodes if y not in nodes2] + [y for y in nodes2 if y not in nodes]:
             vm = virtMachine.VirMachine(n)
             vm_db = vm.get_vm_db_inst()
             old_x =None if not vm_db else vm_db.X_server
-            ret2 = change_x11_fw(vm, x)
+            ret2 = change_x11_fw(vm, x if n in nodes else None)
             ret = ret2
             if ret2 != "Successful":
               changed_xs = set([])
@@ -422,7 +433,7 @@ def submit_display(request):
                          'tty': cx.Tty,
                          'ns': s_ns,
                          'c': 'Y' if s_ns.count(' ') else 'N',
-                         'n_time': map(lambda y: {'n': y.Name, 't': datetime2str(y.Last_modified)}, cx_ns)
+                         'n_time': map(lambda y: {'n': y.Name, 't': datetime2str(y.Last_modified), 'r': y.Running}, cx_ns)
                          })
         if not ret2 and not changed_xs:
           ret = 'Not allowed to remove!'
@@ -450,14 +461,13 @@ def submit_display(request):
 @csrf_exempt
 def submit_restart_mmi(request):
   ret = 'Failed'
-  n_t = ''
   vm = None
 
   def return2(ret1, rollback_restarting=True):
     myLogging.logger.info('ret: %s' % ret1)
     if rollback_restarting:
       vm.save_restarting(False)
-    return JsonResponse({'ret': ret1, 'n_t': n_t})
+    return JsonResponse({'ret': ret1, 'n_t': datetime2str(vm.db_inst.Last_modified) if vm else ''})
 
   if request.method == 'POST':
     try:
@@ -495,7 +505,6 @@ def submit_restart_mmi(request):
         if not vm.start_node(timeout - (time.time() - start_time)):
           return return2('Start mmi failed or timeout!')
       vm.save_restarting(False)
-      n_t = datetime2str(vm.db_inst.Last_modified)
       ret = 'Successful'
     except socket.gaierror:
       myLogging.logger.exception('getaddrinfo failed in submit display!')
@@ -506,6 +515,7 @@ def submit_restart_mmi(request):
     finally:
       if vm and vm.db_inst.Restarting:
         vm.save_restarting(False)
+  n_t = datetime2str(vm.db_inst.Last_modified) if vm else ''
   myLogging.logger.info('ret: %s, n_t: %s' % (ret, n_t))
   return JsonResponse({'ret': ret, 'n_t': n_t})
 

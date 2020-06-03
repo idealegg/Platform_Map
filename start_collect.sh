@@ -1,36 +1,11 @@
 #!/usr/bin/ksh
 
-usage()
-{
-  echo "Usage: `basename $0` [JV|CD]"
-  echo "       Default: JV"
-}
-
-if [ $# -gt 1 ]
-then
-  usage
-  exit 1
-fi
-
-PLAT_FORM_SITE=JV
-
-if [ $# -eq 1 ]
-then
-  if [ "$1" == "CD" -o "$1" == "JV" ]
-  then
-    PLAT_FORM_SITE=$1
-  else
-    usage
-    exit 2
-  fi
-fi
-
 WORK_DIR=`dirname $0`
 WORK_DIR=`cd $WORK_DIR;pwd`
+cd ${WORK_DIR}
 cd GetPlatformInfo
 export PYTHONUNBUFFERED=1
 export PYTHONPATH=${WORK_DIR}/GetPlatformInfo:${WORK_DIR}:.
-export PLAT_FORM_SITE
 
 # Check if there is collecting process
 pids=`ps -o pid,cmd -A|grep 'python runCollect.py'|grep -v grep|awk '{print $1}'`

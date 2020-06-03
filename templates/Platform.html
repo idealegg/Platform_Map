@@ -43,7 +43,8 @@
                     <a href="#div-{{ site.site_name }}" class="x-wiki-index-item">{{site.site_name}}</a>
                     {%  for pf in site.pfs %}
                         <div id="menu-{{ pf.pf_name }}" depth="1" style="display: none;position: relative; margin-left: 15px;">
-                            <a href="#div-{{ site.site_name }}-{{ pf.pf_name }}" class="x-wiki-index-item">{{ pf.pf_name }}</a>
+                            <a href="#div-{{ site.site_name }}-{{ pf.pf_name }}" id="a-{{ site.site_name }}-{{ pf.pf_name }}"
+                               class="x-wiki-index-item">{{ pf.pf_name }}</a>
                         </div>
                     {% endfor %}
                     </div>
@@ -80,7 +81,7 @@
                 <div class="info_line validity">
                     <label class="pf_label">Validity: </label>
                     <!--<input type="date" value="2019-01-01" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd'});javascript:{$('#eta').trigger('change')}"/> -->
-                    <input id="select-date-{{ site.site_name }}-{{ pf.pf_name }}" class="Wdate" value="{{ pf.valid|date:"Y-m-d" }}" onfocus="onClickSelectDate(this, this.parentNode)"/>
+                    <input id="select-date-{{ site.site_name }}-{{ pf.pf_name }}" class="Wdate" value="{{ pf.valid|date:"Y-m-d" }}" onfocus="onClickSelectDate(this)"/>
                     <span></span>
                 </div>
                 <div class="info_line">

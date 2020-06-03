@@ -2,30 +2,30 @@
  * Created by huangd on 2019/9/10.
  */
     function altRows(){
-            var tables = document.getElementsByClassName('altrowstable');
+            var tables = $('.altrowstable');
             for (var j = 0; j < tables.length; ++j) {
-                var rows = tables[j].getElementsByTagName("tr");
+                var rows = $(tables[j]).find("tr");
                 //console.log(rows.length);
                 for (var i = 0; i < rows.length; i++) {
                     if (i % 2 == 0) {
-                        rows[i].style.backgroundColor = '#ffffff';
+                        $(rows[i]).css('background-color', '#ffffff');
                     } else {
-                        rows[i].style.backgroundColor = '#efefef';
+                        $(rows[i]).css('background-color', '#efefef');
                     }
                 }
 
-                var values = tables[j].getElementsByClassName('itemvalue');
+                var values = $(tables[j]).find('.itemvalue');
+                var rep=/\b(n|unknown)\b/i;
                 for (i = 0; i < values.length; i++) {
-                    if ((values[i].innerHTML == 'N') || (values[i].innerHTML == 'n') || (values[i].innerHTML == 'unknown')
-                        || (values[i].innerHTML == 'Unknown') || (values[i].innerHTML == 'UNKNOWN')) {
-                        values[i].style.color = '#ff0000';
+                    if (rep.test($(values[i]).text() )) {
+                        $(values[i]).css('color', '#ff0000');
                     }
                 }
+            }
 
-                var valids = document.getElementsByClassName('validity');
-                for (i = 0; i < valids.length; i++) {
-                    checkValidity(valids[i]);
-                }
+            var valids = $('.Wdate');
+            for (i = 0; i < valids.length; i++) {
+                checkValidity(valids[i]);
             }
     }
 
@@ -107,21 +107,29 @@ function expandWikiNode(icons, rec) {
     }
 
     function checkValidity(t) {
-          //console.log('checkValidity')
           //console.log(t);
-          var date = t.getElementsByTagName('input')[0];
-          var sp = t.getElementsByTagName('span')[0];
-          var i_Date = Date.parse(date.value);
+          var div_date = $(t).parent();
+          var pf = $(t).parents('.content_item');
+          var site_n = pf.find('label.sitename');
+          var pf_n = pf.find('label.platformname');
+          var a_pf = $("#a-"+site_n.text()+'-'+pf_n.text());
+          var sp = div_date.find('span');
+          var i_Date = Date.parse($(t).val());
           var c_Date = Date.parse(new Date());
+
+          //console.log(i_Date);
+          //console.log(c_Date);
           if (i_Date + 86400000 <= c_Date){
-            sp.className = 'uk-icon-close';
+            sp.attr('class', 'uk-icon-close');
+            a_pf.css('color', '#00ff00');
           }
           else{
-            sp.className = 'uk-icon-check';
+            sp.attr('class', 'uk-icon-check');
+            a_pf.css('color', 'red');
           }
     }
 
-    function onClickSelectDate(t, t2) {
+    function onClickSelectDate(t) {
         //console.log(t);
         //console.log(t2);
       WdatePicker({
@@ -135,7 +143,7 @@ function expandWikiNode(icons, rec) {
           isShowOK: true, //是否显示“确定”按钮
           isShowToday: true, //是否显示“今天”按钮
           autoPickDate: true, //为false时 点日期的时候不自动输入,而是要通过确定才能输入，为true时 即点击日期即可返回日期值，为null时(推荐使用) 如果有时间置为false 否则置为true
-          autoUpdateOnChanged: checkValidity(t2)
+          autoUpdateOnChanged: checkValidity(t)
       })
     }
 
@@ -170,7 +178,7 @@ function expandWikiNode(icons, rec) {
             type: "POST",
             dataType: 'json',
             beforeSend: function () {
-                console.log('beforeSend');
+                //console.log('beforeSend');
                 $b1.attr('disabled', true);
             },
             success: function (res) {
@@ -186,7 +194,7 @@ function expandWikiNode(icons, rec) {
                 }
             },
             complete: function () {
-                console.log('complete');
+                //console.log('complete');
                 $b1.attr('disabled', false);
             },
             error: function () {
@@ -227,13 +235,13 @@ function expandWikiNode(icons, rec) {
                 },
             dataType: 'json', type: "POST",
         beforeSend: function () {
-            console.log('beforeSend');
+            //console.log('beforeSend');
             $(t).css('outline', 'outset');
             $err.text(prefix+'Submitting...');
             $err.css('color', '#e28327');
         },
         success: function (res) {
-            console.log('success');
+            //console.log('success');
             //console.log(res);
             $err.text(prefix+res['ret']);
             if (res['ret'] != 'Successful'){
@@ -246,13 +254,13 @@ function expandWikiNode(icons, rec) {
             }
         },
         complete: function () {
-            console.log('complete');
+            //console.log('complete');
             $(t).css('outline-style', 'none');
         },
         error: function (req, errmsg, exception) {
-            console.log('error');
-            console.log('errmsg'+errmsg);
-            console.log('exception'+exception);
+            //console.log('error');
+            //console.log('errmsg'+errmsg);
+            //console.log('exception'+exception);
             $err.css('color', '#ff0000');
             if (errmsg){
                 $err.text(prefix+errmsg);
@@ -270,7 +278,7 @@ function expandWikiNode(icons, rec) {
         var $pppp = $(t).parents('.column_item');
         var host = $pppp.find('.dm_host').text().split(' ')[0];
         var $err = $pppp.find('#error_message');
-        var $timeout = $pppp.find('#timeout_value');
+        var $timeout = $pppp.find('.timeout_value');
 
         var $node_inf = $(t).parent();
         var $node_txt = $node_inf.find('.node_text');
@@ -295,6 +303,12 @@ function expandWikiNode(icons, rec) {
             return;
         }
 
+        if ($n_t_i.attr('run') === 'N'){
+            $err.text(prefix+'The node is not running!');
+            $err.css('color', '#ff0000');
+            return;
+        }
+        
         function destroy_counter() {
             if (counter) {
                 clearInterval(counter);
@@ -328,32 +342,34 @@ function expandWikiNode(icons, rec) {
                 },
             dataType: 'json', type: "POST",
         beforeSend: function () {
-            console.log('beforeSend');
+            //console.log('beforeSend');
             $(t).attr('disabled', true);
             counter = setInterval(count, 1000);
         },
         success: function (res) {
-            console.log('success');
+            //console.log('success');
             destroy_counter();
             //console.log(res);
+            if(res['n_t']){
+                $n_t_i.val(res['n_t']);
+            }
             $err.text(prefix+res['ret']);
             if (res['ret'] != 'Successful'){
                 $err.css('color', '#ff0000');
             }else {
                 $err.css('color', '#00ff00');
-                $n_t_i.val(res['n_t']);
             }
         },
         complete: function () {
-            console.log('complete');
+            //console.log('complete');
             destroy_counter();
             $(t).attr('disabled', false);
         },
         error: function (req, errmsg, exception) {
-            console.log('error');
+            //console.log('error');
             destroy_counter();
-            console.log('errmsg'+errmsg);
-            console.log('exception'+exception);
+            //console.log('errmsg'+errmsg);
+            //console.log('exception'+exception);
             $(t).attr('disabled', false);
             $err.css('color', '#ff0000');
             if (errmsg){
@@ -367,6 +383,7 @@ function expandWikiNode(icons, rec) {
     }
 
     function dbclick_display_nodes(t) {
+        var has_node_stopped = false;
         function get_all_nodes(txt) {
             var ns = txt.split(' ').filter(function(x){return x!=''});
             var nodes = new Array();
@@ -374,7 +391,11 @@ function expandWikiNode(icons, rec) {
                 var $n_e = $('#last-modified-'+ns[n_i]);
                 if ($n_e.length){
                      nodes.push({'n': ns[n_i], 't': $n_e.val()});
+                     if($n_e.attr('run') === 'N'){
+                         has_node_stopped = true;
+                     }
                 }
+                
             }
             //console.log('nodes: '+nodes);
             return JSON.stringify(nodes);
@@ -410,13 +431,13 @@ function expandWikiNode(icons, rec) {
                 $err.text(prefix+'No change');
                 $err.css('color', '#e28327');
                 roll_back = true;
-            }else if(newText.trim() === ''){
+           /* }else if(newText.trim() === ''){
                 $err.text(prefix+'Not allowed to remove!');
                 $err.css('color', '#ff0000');
-                roll_back = true;
+                roll_back = true; */
             }
             else {
-
+                var all_nodes = get_all_nodes(newText);
                 var jqxhr = $.ajax({
                     url: '/submit_display/',
                     //url: '/submit1212_display/',
@@ -425,18 +446,22 @@ function expandWikiNode(icons, rec) {
                         host: host,
                         ns: newText,
                         tty: tty,
-                        n_time: get_all_nodes(newText)
+                        n_time: all_nodes
                     },
                     dataType: 'json',
                     type: "POST",
                     beforeSend: function () {
-                        console.log('beforeSend');
+                        //console.log('beforeSend');
                         $(t).parent().css('outline', 'outset');
-                        $err.text(prefix+'Submitting...');
+                        if (has_node_stopped){
+                            $err.text(prefix+'Some node stopped. Waiting...');
+                        }else{
+                            $err.text(prefix+'Submitting...');
+                        }
                         $err.css('color', '#e28327');
                     },
                     success: function (res) {
-                        console.log('success');
+                        //console.log('success');
                         //console.log(res);
                         $err.text(prefix+res['ret']);
                        // $b1.attr('disabled', false);
@@ -459,7 +484,8 @@ function expandWikiNode(icons, rec) {
                                     node_inf = $tty_info.find('.node_info');
                                     //console.log(node_txt);
                                     node_inf.attr('conflict', cx['c']);
-                                    $tty_info.find('input').remove();
+                                    node_inf.find('input.last-modified-time').remove();
+                                    $(t).find('input').remove();
                                     if (cx['ns'] === ''){
                                         node_txt.html('&nbsp;');
                                         node_txt.attr('title', '');
@@ -467,10 +493,12 @@ function expandWikiNode(icons, rec) {
                                         node_txt.text(cx['ns']);
                                         node_txt.attr('title', cx['ns']);
                                         for(var t_i=0;t_i<cx['n_time'].length;t_i++){
-                                            node_txt.after('<input type="hidden" id="last-modified-'
+                                            node_txt.after('<input type="hidden" class="last-modified-time" id="last-modified-'
                                             +cx['n_time'][t_i]['n']
                                             +'" value="'
-                                            +cx['n_time'][t_i]['t']
+                                            +cx['n_time'][t_i]['t'] 
+                                            +'" run="'
+                                            +cx['n_time'][t_i]['r']
                                             +'" />');
                                         }
                                     }
@@ -479,13 +507,13 @@ function expandWikiNode(icons, rec) {
                         }
                     },
                     complete: function () {
-                        console.log('complete');
+                        //console.log('complete');
                         $(t).parent().css('outline-style', 'none');
                     },
                     error: function (req, errmsg, exception) {
-                        console.log('error');
-                        console.log('errmsg'+errmsg);
-                        console.log('exception'+exception);
+                        //console.log('error');
+                        //console.log('errmsg'+errmsg);
+                        //console.log('exception'+exception);
                         $err.css('color', '#ff0000');
                         if (errmsg){
                             $err.text(prefix+errmsg);
@@ -524,7 +552,7 @@ function expandWikiNode(icons, rec) {
     }
 
     function altBackendRow() {
-        console.log(altBackendRow);
+        //console.log(altBackendRow);
         var $tbody = $('tbody');
         var $td = $tbody.find('td').filter(function(x) {
                                         return $(this).text() === 'Collecting';
@@ -544,7 +572,7 @@ function expandWikiNode(icons, rec) {
     }
 
     function onclickwebsocketbtn(){
-        console.log("onclickwebsocketbtn");
+        //console.log("onclickwebsocketbtn");
         var btn = $("#start_real_time");
         var state = $("#real_time_state");
         if (window.s){
@@ -571,7 +599,7 @@ function expandWikiNode(icons, rec) {
         };
         socket.onmessage = function (event) {
             /* 服务器端向客户端发送数据时，自动执行 */
-            console.log(event);
+            //console.log(event);
             var r = JSON.parse(event.data);
             var to_del = new Array();
             var insert_at_first = false;
@@ -603,7 +631,7 @@ function expandWikiNode(icons, rec) {
                 }
 
                 if(insert_at_first){
-                    console.log('insert at first!');
+                    //console.log('insert at first!');
                     $('tbody').prepend(to_insert);
                     c_tr = $('tbody>tr').first();
                     insert_at_first = false;
@@ -615,7 +643,7 @@ function expandWikiNode(icons, rec) {
                                 max_begin = $(this).children('td').eq(2).text();
                                 c_tr = $(this);
                             }});
-                    console.log('insert after current tr!');
+                    //console.log('insert after current tr!');
                     c_tr.after(to_insert);
                 }
             }

@@ -37,3 +37,11 @@
     6. Only start/stop node, no mmi more.
     7. Add Restarting flag for node.
     8. Optimise the logic to update a node.
+2020-06-02
+    1. Update the room name of jv.
+    2. Delete console log in js file.
+2020-06-03
+    1. Update the start/stop scripts.
+    2. Enable to change display for shutdown vm.
+    3. Enable the availability display for platform list.
+    4. Enable to delete display node.
