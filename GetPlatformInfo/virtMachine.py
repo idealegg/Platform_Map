@@ -73,10 +73,15 @@ class VirMachine(Machine, SQLOperator):
 
   @myLogging.log('VirMachine')
   def set_x_server(self, x):
-    myLogging.logger.info("Host: %s, Port: %d" % (x.Host, x.Port))
     self.db_inst = node.objects.get(Name=self.attr['Name'])
-    self.db_inst.X_server = x
-    self.db_inst.Display = '%s %d' %(x.Host, x.Port)
+    if x:
+      myLogging.logger.info("Host: %s, Port: %d" % (x.Host, x.Port))
+      self.db_inst.X_server = x
+      self.db_inst.Display = '%s %d' %(x.Host, x.Port)
+    else:
+      myLogging.logger.info('Set x server to None!')
+      self.db_inst.X_server = x
+      self.db_inst.Display = ''
     self.db_inst.save()
 
   def get_host_machine(self):

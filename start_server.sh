@@ -1,37 +1,13 @@
 #!/usr/bin/ksh
 
-usage()
-{
-  echo "Usage: `basename $0` [JV|CD]"
-  echo "       Default: JV"
-}
-
-if [ $# -gt 1 ]
-then
-  usage
-  exit 1
-fi
-
-PLAT_FORM_SITE=JV
-
-if [ $# -eq 1 ]
-then
-  if [ "$1" == "CD" -o "$1" == "JV" ]
-  then
-    PLAT_FORM_SITE=$1
-  else
-    usage
-    exit 2
-  fi
-fi
-
 WORK_DIR=`dirname $0`
 WORK_DIR=`cd $WORK_DIR;pwd`
 export PYTHONPATH=${WORK_DIR}/Platform_Map:${WORK_DIR}:.
 export DJANGO_SETTINGS_MODULE=Platform_Map.settings
 export PYTHONUNBUFFERED=1
 export PLATFORM_MAP_SERVER=
-export PLAT_FORM_SITE
+
+cd ${WORK_DIR}
 
 # Check if there are Web servers
 pids=`ps -o pid,cmd -A|grep 'python manage.py runserver'|grep -v grep|awk '{print $1}'`

@@ -199,7 +199,7 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
   elif cmd.startswith('virsh s'):
     ret1 = {'Controlled': 'Y'}
     for line in cmd_out:
-      if line.find("error:") != -1:
+      if line.find('Domain is already') == -1 and line.find("error:") != -1:
         ret1 = {'Controlled': 'N'}
   elif cmd == 'ps -ef|grep Xorg':
     x_servers = []

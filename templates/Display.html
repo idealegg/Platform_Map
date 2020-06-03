@@ -68,7 +68,7 @@
                     <div class="dm_host">{{ d.n.Node }} ({{ d.n.os }})</div>
                     <div>
                         <label>Expected timeout:</label>
-                        <input type="text" id="timeout_value" style="width: 60px" value="180" onblur="onblurTimout(this)">
+                        <input type="text" class="timeout_value" style="width: 60px" value="180" onblur="onblurTimout(this)">
                         <input type="hidden" value="180" >
                         <label>Second(s)</label>
                     </div>
@@ -84,7 +84,7 @@
                                    {% else %}
                                    <div class="node_text" title="{{ x.n_name }}" ondblclick="dbclick_display_nodes(this)">{{ x.n_name }}</div>
                                        {% for nod in x.n_time %}
-                                       <input type="hidden" id="last-modified-{{ nod.n }}" value="{{ nod.t }}" />
+                                            <input type="hidden" class="last-modified-time" id="last-modified-{{ nod.n }}" value="{{ nod.t }}" run="{{ nod.r }}" />
                                        {% endfor %}
                                    {% endifequal %}
                                 </div>
