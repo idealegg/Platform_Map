@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <link rel="icon" href="data:image/ico;base64,aWNv">
     <link rel="stylesheet" href="../static/css/general.css" />
-    <script type="text/javascript" src="../static/js/alt_rows.js"></script>
+    <link rel="stylesheet" href="../static/css/main.css" />
     <script type="text/javascript" src="../static/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="../static/js/alt_rows.js"></script>
     <script type="text/javascript">
         window.onload = altBackendRow;
         window.onunload = closeConn;
@@ -13,18 +14,29 @@
     <title>Backend collect info</title>
 </head>
 <body>
-    <div >
-        <h2 style="padding: 10px">Backend collect info</h2>
+    {% include "header.html" %}
+    <div style="margin:5px;position:fixed;top:50px;overflow:scroll;right: 0;left: 0;bottom: 0">
+        <div class="uk-nav-header" id="best-platform" style="font-size: large">Backend collect info</div>
         <hr>
-        <div>
+        <ul>
+            <li style="list-style:none;float: left;">
             <input type="hidden" id="req_time" value="{{ req_time }}">
             <input type="hidden" id="collect_id">
             <button id="start_real_time" onclick="onclickwebsocketbtn()">Start Real Time Monitor</button>
-        </div>
-        <div>
-            <label>Real time connection state: </label>
+            </li>
+            <li style="list-style:none;float: left;padding-left: 10px">
+            <label style="background: lightcyan">Real time connection state: </label>
             <label id="real_time_state"></label>
-        </div>
+            <li style="list-style:none;float: left;padding-left: 10px">
+            <label style="background: lightcyan">Current Time: </label>
+            <label id="current-time"></label>
+            </li>
+            <li style="list-style:none;float: left;padding-left: 10px">
+            <label style="background: lightcyan">Total: </label>
+            <label id="pf-num"></label>
+            </li>
+            <li class="clear_float" style="list-style:none;"></li>
+        </ul>
                     <table class="altrowstable" style="padding:40px;margin: 20px">
                     <thead>
                     <tr>
@@ -51,5 +63,6 @@
                     </table>
 
     </div>
+
 </body>
 </html>

@@ -38,14 +38,9 @@ class XServer(Machine, SQLOperator):
     sql_dm = SQLDisplayMachine(self.login)
     sql_dm.set_ip(self.get_ip())
     sql_dm.set_hostname(self.get_hostname())
+    sql_dm.set_thalix(self.get_thalix())
     sql_dm.save()
     self.dm_db_inst = sql_dm.db_inst
-    self.execute_cmd('cat /etc/thalix-release')
-    tmp_out = self.stdout.read().strip()
-    if tmp_out:
-      dm = display_machine.objects.get(Node=self.get_hostname())
-      dm.Thalix = tmp_out
-      dm.save()
     self.execute_cmd('fgconsole')
     tmp_out = self.stdout.read().strip()
     if tmp_out:

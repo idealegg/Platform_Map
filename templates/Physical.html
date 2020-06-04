@@ -5,9 +5,9 @@
     <link rel="icon" href="data:image/ico;base64,aWNv">
     <link rel="stylesheet" href="../static/css/general.css" />
     <link rel="stylesheet" href="../static/css/main.css" />
-    <script type="text/javascript" src="../static/js/alt_rows.js"></script>
     <script type="text/javascript" src="../static/js/jquery-3.4.1.min.js"></script>
     <script type="text/javascript" src="../static/js/jquery.tablesorter.js"></script>
+    <script type="text/javascript" src="../static/js/alt_rows.js"></script>
     <script type="text/javascript">
         window.onload = function(){
           console.log("onload");
@@ -20,8 +20,9 @@
     <title>Best Physical Machine List</title>
 </head>
 <body>
+    {% include "header.html" %}
     <div >
-        <div class="uk-flex-item-none x-sidebar-left" style="margin:5px;position:fixed;top:0;bottom:0">
+        <div class="uk-flex-item-none x-sidebar-left" style="margin:5px;position:fixed;top:50px;bottom:0">
             <ul class="uk-nav uk-nav-side">
                 <li class="uk-nav-header" id="physical_list">Physical Machine</li>
             </ul>

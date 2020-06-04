@@ -45,3 +45,7 @@
     2. Enable to change display for shutdown vm.
     3. Enable the availability display for platform list.
     4. Enable to delete display node.
+2020-06-04
+    1. Add header for all pages.
+    2. Add current time/total pf display in backend page.
+    3. Fix bug that collecting crash if dm Node name != Host name.

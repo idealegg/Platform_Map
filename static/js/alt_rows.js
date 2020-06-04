@@ -1,6 +1,29 @@
 /**
  * Created by huangd on 2019/9/10.
  */
+    $(function () {
+        var $gotoTop = $('div.x-goto-top');
+        var onScroll = function () {
+            var wtop = $('.right_content').scrollTop();
+            //console.log('wtop: '+wtop);
+            if (wtop > 900) {
+                $gotoTop.show();
+            }
+            else {
+                $gotoTop.hide();
+            }
+        };
+
+        $('.right_content').scroll(onScroll);
+        onScroll();
+
+        // go-top:
+        $gotoTop.click(function () {
+            //console.log('click');
+            $('.right_content').animate({ scrollTop: 0 }, 1000);
+        });
+    });
+
     function altRows(){
             var tables = $('.altrowstable');
             for (var j = 0; j < tables.length; ++j) {
@@ -383,7 +406,22 @@ function expandWikiNode(icons, rec) {
     }
 
     function dbclick_display_nodes(t) {
-        var has_node_stopped = false;
+
+        function has_node_stopped(t1, t2) {
+            var n1 = t1.split(' ').filter(function(x){return x!=''});
+            var n2 = t2.split(' ').filter(function(x){return x!=''});
+            var ch = n1.filter(function (v) {return n2.indexOf(v) == -1})
+                .concat(n2.filter(function (v) {return n1.indexOf(v) == -1}));
+            //console.log(ch);
+            for(var n_i=0; n_i < ch.length; n_i++) {
+                var $n_e = $('#last-modified-' + ch[n_i]);
+                if ($n_e.attr('run') === 'N') {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function get_all_nodes(txt) {
             var ns = txt.split(' ').filter(function(x){return x!=''});
             var nodes = new Array();
@@ -398,7 +436,7 @@ function expandWikiNode(icons, rec) {
                 
             }
             //console.log('nodes: '+nodes);
-            return JSON.stringify(nodes);
+            return JSON.stringify(nodes) ;
         }
         if ($(t).children("input").length > 0) {
             return false;
@@ -453,7 +491,7 @@ function expandWikiNode(icons, rec) {
                     beforeSend: function () {
                         //console.log('beforeSend');
                         $(t).parent().css('outline', 'outset');
-                        if (has_node_stopped){
+                        if (has_node_stopped(tdPreText, newText)){
                             $err.text(prefix+'Some node stopped. Waiting...');
                         }else{
                             $err.text(prefix+'Submitting...');
@@ -561,6 +599,16 @@ function expandWikiNode(icons, rec) {
             var $tr = $td.parent();
             $tr.css('background-color', '#ff0000');
         }
+
+
+        function display_cur_time() {
+            var c_Date = new Date();
+            $('#current-time').text(c_Date.toISOString().replace('T', ' ').replace('Z', ''));
+
+        }
+
+        counter = setInterval(display_cur_time, 1000);
+        $('#pf-num').text($('tr').length-1);
     }
 
     function closeConn() {
@@ -653,6 +701,7 @@ function expandWikiNode(icons, rec) {
             //c_tr.css('background-color', '#ff0000');
             state.text('updated');
             altBackendRow();
+            //$('#pf-num').text($('tr').length-1);
         };
         socket.onclose = function (event) {
             /* 服务器端主动断开连接时，自动执行 */
