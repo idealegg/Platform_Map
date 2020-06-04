@@ -5,13 +5,14 @@
     <link rel="icon" href="data:image/ico;base64,aWNv">
     <link rel="stylesheet" href="../static/css/general.css" />
     <link rel="stylesheet" href="../static/css/main.css" />
-    <script type="text/javascript" src="../static/js/alt_rows.js"></script>
     <script type="text/javascript" src="../static/js/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="../static/js/alt_rows.js"></script>
     <title>Best Display Machine List</title>
 </head>
 <body>
+    {% include "header.html" %}
     <div >
-        <div class="uk-flex-item-none x-sidebar-left" style="margin:5px;position:fixed;top:0;bottom:0">
+        <div class="uk-flex-item-none x-sidebar-left" style="margin:5px;position:fixed;top:50px;bottom:0">
             <div class="uk-float-right" style="padding-top:5px">
                 <a href="#0" onclick="expandWikiNode($('#x-wiki-index>div>i'), true)" style="margin-left:5px">
                     <i class="uk-icon-expand"></i>

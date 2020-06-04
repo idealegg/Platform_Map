@@ -34,6 +34,7 @@ class Machine(object):
     self.sftp = None
     self.hostname = ''
     self.IP = ''
+    self.Thalix = ''
     self.connect_timeout = None
 
   def set_user(self, user):
@@ -151,6 +152,14 @@ class Machine(object):
     self.execute_cmd(cmd)
     out = parse_cmd(cmd, self.stdout.read().split('\n'))
     return out['IP']
+
+  def get_thalix(self):
+    if self.Thalix:
+      return self.Thalix
+    cmd = 'cat /etc/thalix-release'
+    self.execute_cmd(cmd)
+    out = parse_cmd(cmd, self.stdout.read().split('\n'))
+    return out['Thalix']
 
   @myLogging.log("Machine")
   def is_ping_reachable(self, target_host):

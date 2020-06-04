@@ -12,6 +12,7 @@ class SQLDisplayMachine(SQLOperator):
     self.attr = {'Node': n,
                  'IP': '',
                  'Host_name': '',
+                 'Thalix': '11.0',
                  }
     self.set_filter_function(display_machine.objects.filter)
 
@@ -24,6 +25,9 @@ class SQLDisplayMachine(SQLOperator):
 
   def set_hostname(self, hostname):
     self.attr['Host_name'] = hostname
+
+  def set_thalix(self, thalix):
+    self.attr['Thalix'] = thalix
 
   @classmethod
   def get_inst_by_ip(cls, ip):
