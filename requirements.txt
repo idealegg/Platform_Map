@@ -1,3 +1,3 @@
 ssh==1.8.0
-Django==1.11.23
+Django==1.11.29
 dwebsocket==0.5.11
