@@ -5,9 +5,10 @@ from GetPlatformInfo.parseUtil import parse_cmd
 import myLogging
 import Platform_Map.settings
 import platform
+import confUtil
 
 
-class Machine(object):
+class Machine(ssh.SSHClient):
   class_connect_timeout = 2.0
 
   def __init__(self, login):
@@ -26,7 +27,7 @@ class Machine(object):
       self.user = tmp[2]
     if len(tmp) > 3:
       self.passwd = tmp[3]
-    self.ssh_client = None
+    self.ssh_inited = False
     self.last_cmd = ''
     self.stdout = None
     self.stderr = None
@@ -36,6 +37,7 @@ class Machine(object):
     self.IP = ''
     self.Thalix = ''
     self.connect_timeout = None
+    self.conf = None
 
   def set_user(self, user):
     self.user = user
@@ -50,42 +52,54 @@ class Machine(object):
   def set_class_connect_timeout(cls, timeout):
     Machine.class_connect_timeout = timeout
 
+  def exec_command(self, command, bufsize=-1, timeout=None):
+    chan = self._transport.open_session()
+    if timeout is not None:
+      chan.settimeout(timeout)
+    chan.exec_command(command)
+    stdin = chan.makefile('wb', bufsize)
+    stdout = chan.makefile('rb', bufsize)
+    stderr = chan.makefile_stderr('rb', bufsize)
+    return stdin, stdout, stderr
+
   @myLogging.log("Machine")
   def init_ssh(self):
-    if not self.ssh_client:
+    if not self.ssh_inited:
       myLogging.logger.info( "Init ssh client [%s@%s:%d]." % (self.user, self.host, self.port))
-      self.ssh_client = ssh.SSHClient()
-      self.ssh_client.set_missing_host_key_policy(ssh.AutoAddPolicy())
+      self.set_missing_host_key_policy(ssh.AutoAddPolicy())
       myLogging.logger.info( "Begin to connect to [%s@%s:%d] timeout:[%f]." %
                              (self.user, self.host, self.port, self.connect_timeout or Machine.class_connect_timeout))
-      self.ssh_client.connect(self.host,
+      self.connect(self.host,
                               port=self.port,
                               username=self.user,
                               password=self.passwd,
                               timeout=self.connect_timeout or Machine.class_connect_timeout)
+      self.ssh_inited = True
     else:
       myLogging.logger.debug("Init ssh client again [%s@%s:%d]." % (self.user, self.host, self.port))
 
   @myLogging.log("Machine")
   def close_ssh(self):
     self.close_open_file()
-    if self.ssh_client:
-      self.ssh_client.close()
-      self.ssh_client = None
+    if self.ssh_inited:
+      self.close()
+      self.ssh_inited = False
     else:
       myLogging.logger.warning("ssh client is already closed!")
 
   @myLogging.log("Machine")
-  def execute_cmd(self, cmd, redirect_stderr=True):
+  def execute_cmd(self, cmd, redirect_stderr=True, timeout=None):
     myLogging.logger.info( "Run cmd '%s' in %s:%d" % (cmd, self.host, self.port))
+    if not timeout:
+      timeout = self.get_conf_inst().get_para_float('cmd_exec_timeout')
     self.last_cmd = cmd
     if redirect_stderr:
-      cmd = "%s 2>&1" % cmd
-    self.stdin, self.stdout, self.stderr=self.ssh_client.exec_command(cmd)
+      cmd = "(%s) 2>&1" % cmd
+    self.stdin, self.stdout, self.stderr=self.exec_command(cmd, timeout=timeout)
     #print self.stdout.read()
 
   @myLogging.log("Machine")
-  def execute_script(self, script, script_name=''):
+  def execute_script(self, script, script_name='', timeout=None, redirect_stderr=True):
     if not script_name:
       script_name = self.SCRIPT_PATH
     myLogging.logger.info("Run script %s in %s" % (script_name, self.host))
@@ -96,9 +110,15 @@ class Machine(object):
       f.write(script)
     f_path="$HOME/%s" % script_name
     self.tx_file(local_f, script_name)
-    self.stdin, self.stdout, self.stderr = self.ssh_client.exec_command("chmod u+x %s" % f_path)
-    self.stdin, self.stdout, self.stderr = self.ssh_client.exec_command("dos2unix %s" % f_path)
-    self.stdin, self.stdout, self.stderr = self.ssh_client.exec_command("%s 2>&1" % (f_path))
+    if not timeout:
+      timeout = self.get_conf_inst().get_para_float('script_exec_timeout')
+    self.stdin, self.stdout, self.stderr = self.exec_command("chmod u+x %s" % f_path, timeout=timeout)
+    self.stdin, self.stdout, self.stderr = self.exec_command("dos2unix %s" % f_path, timeout=timeout)
+    if redirect_stderr:
+      cmd = "(%s) 2>&1" % (f_path)
+    else:
+      cmd = f_path
+    self.stdin, self.stdout, self.stderr = self.exec_command(cmd, timeout=timeout)
     # print self.stdout.read()
 
   @myLogging.log("Machine")
@@ -129,7 +149,7 @@ class Machine(object):
   @myLogging.log("Machine")
   def tx_file(self, src, des):
     myLogging.logger.info("Open sftp in %s ..." % self.host)
-    self.sftp = self.ssh_client.open_sftp()
+    self.sftp = self.open_sftp()
     myLogging.logger.info("Put [%s] to [%s] at %s..." % (src, des, self.host))
     self.sftp.put(src, des)
     self.sftp.close()
@@ -168,3 +188,9 @@ class Machine(object):
     tmp = parse_cmd(cmd, self.stdout.read().split('\n'))
     myLogging.logger.debug(tmp)
     return tmp['Ping_reachable'] == "Y"
+
+  def get_conf_inst(self):
+    if not self.conf:
+      self.conf = confUtil.Conf()
+      self.conf.load_conf()
+    return self.conf

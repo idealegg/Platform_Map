@@ -49,3 +49,9 @@
     1. Add header for all pages.
     2. Add current time/total pf display in backend page.
     3. Fix bug that collecting crash if dm Node name != Host name.
+2020-06-05
+    1. Fix bug if someone start vm between pm and vm collection, vm would be shutdown by this tool.
+2020-06-09
+    1. Enable display node change from pm if the server could not reach vm.
+    2. Add timeout for exec cmd  to avoid stuck if someone shut down vm after ssh established.
+    3. Adjust some trace info.

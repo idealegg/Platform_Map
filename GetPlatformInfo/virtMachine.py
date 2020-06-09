@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from GetPlatformInfo.machine import Machine
+from GetPlatformInfo.physicalMachine import HostMachine
 from GetPlatformInfo.sqlOperator import SQLOperator
 from Display_Platform_Info.models import node, X_server, host_machine, platform_node_list, platform
 from GetPlatformInfo.sqlDisplayMachine import SQLDisplayMachine
@@ -10,11 +11,14 @@ import Platform_Map.settings
 import os
 import platform as os_pf
 import time
+import parseUtil
+import confUtil
 
 
 class VirMachine(Machine, SQLOperator):
   def __init__(self, vm_host, running='Y', id_in_host=-1, is_orphan=False):
-    super(VirMachine, self).__init__(vm_host)
+    SQLOperator.__init__(self)
+    Machine.__init__(self, vm_host)
     self.script = ''
     self.vm_state = {'Name': vm_host,
                      'Id_in_host': id_in_host,
@@ -364,3 +368,82 @@ exit 0
     myLogging.logger.info(tmp_out)
     return tmp_out.count('Start node successfully') != 0
 
+  @myLogging.log('VirMachine')
+  def exec_comms(self, comms, pm=None, redirect_stderr=True, echo=False):
+    if not parseUtil.get_conf():
+      parseUtil.set_conf(self.get_conf_inst())
+    ret = parseUtil.ping_a_node(self.attr['Name'])
+    #ret = self.get_vm_db_inst().Reachable == 'N'
+    myLogging.logger.info('Ping result: %d' % ret)
+    if not ret:
+      # The node could be reached directly, use ssh.
+      # if c_node not equal vm_state['Name'], like 'umerod002lit' vs 'umerod002li'
+      self.init_ssh()
+      if echo:
+        cmd = '\n'.join(map(lambda x: 'echo "%s";%s' (x, x), comms))
+      else:
+        cmd = '\n'.join(comms)
+      self.execute_cmd(cmd, redirect_stderr=redirect_stderr, timeout=self.conf.get_para_float('cmd_exec_timeout'))
+      return True
+    else:
+        if pm:
+          script = parseUtil.gen_script(map(lambda x: x.strip(), comms),
+                                        self.attr['Name'],
+                                        is_root=True,
+                                        is_ssh=pm.is_ping_reachable(self.attr['Name'])
+                                        #is_ssh=True
+          )
+          pm.execute_script(script, timeout=self.conf.get_para_float('script_exec_timeout'))
+          self.stdout = pm.stdout
+          self.stderr = pm.stderr
+          return True
+        else:
+          return False
+
+  @myLogging.log('VirMachine')
+  def change_x11_fw(self, x):
+    err = 'Successful'
+    pm = None
+    new_status = 'N'
+    if x:
+      cmd = '''
+    cat << EOF > /etc/xinetd.d/x11-fw
+service x11-fw
+{
+ disable = no
+ type = UNLISTED
+ socket_type = stream
+ protocol = tcp
+ wait = no
+ user = root
+ bind = 0.0.0.0
+ port = 6000
+ only_from = 0.0.0.0
+ redirect = %s %d
+}
+EOF
+    ''' % (x.Host, x.Port)
+    else:
+      cmd = 'rm /etc/xinetd.d/x11-fw'
+    if self.get_vm_db_inst().Running == 'N':
+      pm = HostMachine(self.get_vm_db_inst().Host)
+      pm.init_ssh()
+      new_status = pm.update_vm_status({'Name': self.Name, 'Running': 'N'})
+      if new_status == 'N':
+        if pm.start_vm(self)['Controlled'] == 'N' or not pm.wait_vm_start(self, 30):
+          err = 'Node failed to start!'
+          myLogging.logger.error(err)
+          pm.close_ssh()
+          return err
+    if not self.exec_comms([cmd, 'service xinetd reload'], pm=pm) and not pm:
+      pm = HostMachine(self.get_vm_db_inst().Host)
+      pm.init_ssh()
+      self.exec_comms([cmd, 'service xinetd reload'], pm=pm)
+    myLogging.logger.info("cmd result: %s" % self.stdout.read())
+    self.close_ssh()
+    if self.get_vm_db_inst().Running == 'N' and new_status == 'N':
+      pm.stop_vm(self)
+    if pm:
+      pm.close_ssh()
+    self.set_x_server(x)
+    return err

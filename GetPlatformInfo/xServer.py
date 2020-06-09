@@ -16,7 +16,8 @@ class XServer(Machine, SQLOperator):
   xs_list = set()
 
   def __init__(self, login):
-    super(XServer, self).__init__(login)
+    SQLOperator.__init__(self)
+    Machine.__init__(self, login)
     self.set_filter_function(X_server.objects.filter)
     self.dm_db_inst = None
     self.active_tty = -1
@@ -32,9 +33,12 @@ class XServer(Machine, SQLOperator):
     self.set_connect_timeout(timeout)
     try:
       self.init_ssh()
-    except Exception,e:
-      myLogging.logger.exception('Exception when init ssh to X node %s!' % self.attr['Host'])
-      return
+    except Exception, e:
+      if e.message.find('timed out') != -1:
+        myLogging.logger.warning('Display machine [%s] connect timeout! Skip it!' % self.host)
+      else:
+        myLogging.logger.exception('Exception when init ssh to X node %s!' % self.attr['Host'])
+        return
     sql_dm = SQLDisplayMachine(self.login)
     sql_dm.set_ip(self.get_ip())
     sql_dm.set_hostname(self.get_hostname())

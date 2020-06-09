@@ -321,62 +321,6 @@ def display(request):
 
 
 @myLogging.log('views')
-def change_x11_fw(vm, x):
-  err = 'Successful'
-  pm = None
-  if x:
-    cmd = '''
-  cat << EOF > /etc/xinetd.d/x11-fw
-service x11-fw
-{
- disable = no
- type = UNLISTED
- socket_type = stream
- protocol = tcp
- wait = no
- user = root
- bind = 0.0.0.0
- port = 6000
- only_from = 0.0.0.0
- redirect = %s %d
-}
-EOF
-  ''' % (x.Host, x.Port)
-  else:
-    cmd = 'rm /etc/xinetd.d/x11-fw'
-  if vm.db_inst.Running == 'N':
-    pm = physicalMachine.HostMachine(vm.db_inst.Host)
-    pm.init_ssh()
-    if pm.start_vm(vm)['Controlled'] == 'N' or not pm.wait_vm_start(vm, 30):
-      err = 'Node failed to start!'
-      myLogging.logger.error(err)
-      return err
-  vm.init_ssh()
-  vm.execute_cmd(cmd, redirect_stderr=False)
-  stderr = vm.stdout.read()
-  if stderr:
-    vm.close_ssh()
-    err = "%s x11-fw error!" % ('Write' if x else 'Delete')
-    myLogging.logger.error(err)
-    return err
-  vm.execute_cmd('service xinetd reload', redirect_stderr=False)
-  myLogging.logger.info(vm.stdout.read())
-  myLogging.logger.info(vm.stderr.read())
-  #stderr = vm.stderr.read()
-  #if stderr:
-  #  vm.close_ssh()
-  #  err = "Reload x11-fw error!"
-  #  myLogging.logger.error(err)
-  #  return err
-  vm.close_ssh()
-  if vm.db_inst.Running == 'N':
-    pm.stop_vm(vm)
-    pm.close_ssh()
-  vm.set_x_server(x)
-  return err
-
-
-@myLogging.log('views')
 @csrf_exempt
 def submit_display(request):
   ret = 'Failed'
@@ -418,7 +362,7 @@ def submit_display(request):
             vm = virtMachine.VirMachine(n)
             vm_db = vm.get_vm_db_inst()
             old_x =None if not vm_db else vm_db.X_server
-            ret2 = change_x11_fw(vm, x if n in nodes else None)
+            ret2 = vm.change_x11_fw(x if n in nodes else None)
             ret = ret2
             if ret2 != "Successful":
               changed_xs = set([])

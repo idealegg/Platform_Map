@@ -188,7 +188,7 @@ class RunCollect:
                           timeout=self.conf.get_para_float('backend_push_timeout'))
       myLogging.logger.info("req: %s" % req)
     except:
-      myLogging.logger.error("Exception in send_req2web!")
+      myLogging.logger.info("Exception in send_req2web!")
 
   @myLogging.log('RunCollect')
   def collect_vm_info(self):
@@ -242,10 +242,11 @@ class RunCollect:
           if len(v_nodes):
             # only check the 1st vm
             vm_state = v_nodes[0]
-            self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'])
-            self.vm.set_conf_name(c_node)
             self.pm = physicalMachine.HostMachine(self.pm_login_map[vm_state['Host']])
             self.pm.init_ssh()
+            vm_state['Running'] = self.pm.update_vm_status(vm_state)
+            self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'])
+            self.vm.set_conf_name(c_node)
             if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():
               myLogging.logger.info("Starting vm %s" % vm_state['Name'])
               self.vm.attr.update(self.pm.start_vm(self.vm))
@@ -302,9 +303,11 @@ class RunCollect:
     for vm_state in (x for x in filter(lambda x: parseUtil.node_not_in_list(x['Name'], self.conf.get_all_nodes()),
                                        self.vm_list)):
       myLogging.logger.info("To check orphan node: %s" % vm_state)
-      self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'], True)
       self.pm = physicalMachine.HostMachine(self.pm_login_map[vm_state['Host']])
       self.pm.init_ssh()
+      vm_state['Running'] = self.pm.update_vm_status(vm_state)
+      self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'], True)
+
       if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():
         myLogging.logger.info("Starting vm %s" % vm_state['Name'])
         self.vm.attr.update(self.pm.start_vm(self.vm))
@@ -338,13 +341,7 @@ class RunCollect:
     xServer.XServer.xs_list = set()
     for host in self.conf.get_display_host_list():
       xs = xServer.XServer(host)
-      try:
-        xs.get_x_servers(self.conf.get_para_float('connect_timeout'))
-      except Exception,e:
-        if e.message.find('timed out') != -1:
-          myLogging.logger.warning('Display machine [%s] connect timeout! Skip it!' % host)
-        else:
-          raise
+      xs.get_x_servers(self.conf.get_para_float('connect_timeout'))
     myLogging.logger.info("xservers id all: [%s]" % map(lambda x: x.id, X_server.objects.all()))
     myLogging.logger.info("xservers id rev: [%s]" % list(xServer.XServer.xs_list))
     X_server.objects.exclude(id__in=xServer.XServer.xs_list).delete()

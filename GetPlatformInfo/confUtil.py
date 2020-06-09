@@ -37,6 +37,8 @@ class Conf:
                     'wait_vm_start_sleep_time': 10.0,
                     'check_conf_interval': 5.0,
                     'backend_push_timeout': 2.0,
+                    'cmd_exec_timeout': 30.0,
+                    'script_exec_timeout': 180.0,
                     'backend_push_link': 'http://localhost:8000/backend_push/',
                     'cmd_list': ['uname -a',
                                  'cat /etc/thalix-release',

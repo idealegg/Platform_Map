@@ -21,8 +21,13 @@ def set_conf(c):
   conf = c
 
 
+def get_conf():
+  global conf
+  return conf
+
+
 @myLogging.log("parseUtil")
-def gen_script(cmd_list, vm_name, is_ssh=True):
+def gen_script(cmd_list, vm_name, is_ssh=True, is_root=False):
   vm = vm_name
   tmp_script = []
   ssh_cmd = 'ssh -o ConnectTimeout=%d -l system' % int(conf.get_para_float('connect_timeout'))
@@ -73,7 +78,10 @@ while (${done}) {
 
 exit 0''' % ('' if is_ssh else 'close', conf.get_para_int('remote_cmd_timeout_times'), '' if is_ssh else 'close'))
   myLogging.logger.info( tmp_script)
-  return ''.join(tmp_script)
+  script = ''.join(tmp_script)
+  if is_root:
+    script = script.replace('system@', 'root>').replace('system', 'root')
+  return script
 
 
 @myLogging.log("parseUtil")
