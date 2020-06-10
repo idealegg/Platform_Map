@@ -11,7 +11,6 @@ from django.db import transaction
 import GetPlatformInfo.runCollect as runCollect
 import GetPlatformInfo.myLogging as myLogging
 import GetPlatformInfo.virtMachine as virtMachine
-import GetPlatformInfo.physicalMachine as physicalMachine
 import GetPlatformInfo.xServer as xServer
 
 from django.views.decorators.csrf import csrf_exempt
@@ -90,7 +89,7 @@ def datetime2str(dt):
 
 def str2datetime(s):
   if not s:
-    return datetime.datetime.min;
+    return datetime.datetime.min
   return datetime.datetime(
     int(s[:4]),
     int(s[5:7]),
@@ -115,9 +114,9 @@ def write_back_to_conf(pf):
     with open(conf_new, 'w') as fd2:
       lines = []
       for line in fd:
+        if type(line) is not unicode:
+          line = line.decode('utf8')
         if not completed:
-          if type(line) is not unicode:
-            line = line.decode('utf8')
           ret = re.search(SITE_PATTERN, line)
           if ret:
             site_found = True
@@ -246,11 +245,12 @@ def submit_platform(request):
       elif pf_info.Description != desc or pf_info.Owner != owner or pf_info.Validity != valid:
         pf_info.Description = desc
         pf_info.Owner = owner
-        pf_info.Validity = valid
+        pf_info.Validity = valid if valid else None
         lock2.acquire()
         locked = True
         with transaction.atomic():
           pf_info.save()
+          pf_info.Validity = valid if valid else ''
           write_back_to_conf(pf_info)
         ret['last_mod'] = datetime2str(pf_info.Last_modified)
         lock2.release()

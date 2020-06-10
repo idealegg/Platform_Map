@@ -16,9 +16,12 @@ class SQLDisplayMachine(SQLOperator):
                  }
     self.set_filter_function(display_machine.objects.filter)
 
-  def save(self):
+  def save(self, is_init=False):
     self.db_inst = display_machine(**self.attr)
-    self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']})
+    if not is_init:
+      self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']})
+    else:
+      self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']}, kept={'IP', 'Host_name', 'Thalix'})
 
   def set_ip(self, ip):
     self.attr['IP'] = ip

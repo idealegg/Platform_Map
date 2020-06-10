@@ -137,12 +137,13 @@ function expandWikiNode(icons, rec) {
           var pf_n = pf.find('label.platformname');
           var a_pf = $("#a-"+site_n.text()+'-'+pf_n.text());
           var sp = div_date.find('span');
-          var i_Date = Date.parse($(t).val());
+          var i_str = $(t).val().trim();
+          var i_Date = Date.parse(i_str);
           var c_Date = Date.parse(new Date());
 
           //console.log(i_Date);
           //console.log(c_Date);
-          if (i_Date + 86400000 <= c_Date){
+          if ((i_str === '') || (i_Date + 86400000 <= c_Date)){
             sp.attr('class', 'uk-icon-close');
             a_pf.css('color', '#00ff00');
           }

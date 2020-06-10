@@ -38,7 +38,7 @@ class XServer(Machine, SQLOperator):
         myLogging.logger.warning('Display machine [%s] connect timeout! Skip it!' % self.host)
       else:
         myLogging.logger.exception('Exception when init ssh to X node %s!' % self.attr['Host'])
-        return
+      return
     sql_dm = SQLDisplayMachine(self.login)
     sql_dm.set_ip(self.get_ip())
     sql_dm.set_hostname(self.get_hostname())

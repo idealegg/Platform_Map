@@ -55,3 +55,8 @@
     1. Enable display node change from pm if the server could not reach vm.
     2. Add timeout for exec cmd  to avoid stuck if someone shut down vm after ssh established.
     3. Adjust some trace info.
+2020-06-10
+    1. Fix bug that some str not convert to unicode if muti pf changed.
+    2. Fix bug empty date would cause submit platform failure.
+    3. Fix bug pf with empty date is a used pf.
+    4. Fix bug when restart the display is empty.

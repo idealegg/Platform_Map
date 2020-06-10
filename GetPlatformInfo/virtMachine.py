@@ -12,7 +12,6 @@ import os
 import platform as os_pf
 import time
 import parseUtil
-import confUtil
 
 
 class VirMachine(Machine, SQLOperator):
@@ -149,7 +148,7 @@ fi
 echo "Stop MMI successfully!"
 exit 0
 ''' % (first_sleep, time_out, first_sleep, check_interval, check_interval)
-    self.execute_cmd(cmd)
+    self.execute_cmd(cmd, time_out=time_out)
     tmp_out = self.stdout.read()
     self.close_ssh()
     myLogging.logger.info(tmp_out)
@@ -191,7 +190,7 @@ exit 0
   echo "Start MMI successfully!"
   exit 0
   ''' % (first_sleep, time_out, first_sleep, check_interval, check_interval)
-    self.execute_cmd(cmd)
+    self.execute_cmd(cmd, time_out=time_out)
     tmp_out = self.stdout.read()
     self.close_ssh()
     myLogging.logger.info(tmp_out)
@@ -268,7 +267,7 @@ fi
 echo "Stop node successfully!"
 exit 0
 ''' % (first_sleep, time_out, first_sleep, check_interval, check_interval)
-    self.execute_cmd(cmd)
+    self.execute_cmd(cmd, time_out=time_out)
     tmp_out = self.stdout.read()
     self.close_ssh()
     myLogging.logger.info(tmp_out)
@@ -359,10 +358,10 @@ exit 0
   echo "Start node successfully!"
   #echo "Start node successfully!" >> /usr/system/huangd_touch.log
   exit 0
-  ''' % (first_sleep, time_out, first_sleep,
+  ''' % (first_sleep, time_out-10, first_sleep,
          check_interval, check_interval, check_interval, check_interval)
     myLogging.logger.info("cmd: %s" % cmd)
-    self.execute_cmd(cmd)
+    self.execute_cmd(cmd, timeout=time_out)
     tmp_out = self.stdout.read()
     self.close_ssh()
     myLogging.logger.info(tmp_out)

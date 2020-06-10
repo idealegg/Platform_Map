@@ -98,7 +98,7 @@ class RunCollect:
     display_machine_ids = set()
     for dm in self.conf.get_display_host_list():
       sql_dm = sqlDisplayMachine.SQLDisplayMachine(dm)
-      sql_dm.save()
+      sql_dm.save(is_init=True)
       display_machine_ids.add(sql_dm.get_id())
     # Delete the odd data
     myLogging.logger.info("display_machines id all: [%s]" % map(lambda x: x.id, display_machine.objects.all()))
