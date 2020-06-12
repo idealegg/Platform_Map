@@ -66,7 +66,7 @@
                 {% for d in room_info.ds %}
 
                 <div id='div-{{ d.n.Host_name }}' class="column_item">
-                    <div class="dm_host">{{ d.n.Node }} ({{ d.n.os }})</div>
+                    <div class="dm_host platform-node-name">{{ d.n.Node }} ({{ d.n.os }})</div>
                     <div>
                         <label>Expected timeout:</label>
                         <input type="text" class="timeout_value" style="width: 60px" value="180" onblur="onblurTimout(this)">

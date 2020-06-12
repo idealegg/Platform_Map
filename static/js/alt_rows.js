@@ -22,6 +22,36 @@
             //console.log('click');
             $('.right_content').animate({ scrollTop: 0 }, 1000);
         });
+
+        /*$('.platform-node-name').dblclick(function () {
+
+            var name = $(this).text();
+            var command = '"C:\\Program Files (x86)\\NetSarang\\Xmanager Enterprise 5\\Xshell.exe" -url ssh://system:abc123@' + name.trim() + ':22';
+            window.oldOnError = window.onerror;
+            window._command = command;
+            window.onerror = function (err) {
+                if (err.indexOf('utomation') != -1) {
+                    alert('命令' + window._command + ' 已经被用户禁止！');
+                    return true;
+                }
+                else
+                    return false;
+            };
+
+            var wsh = new ActiveXObject('WScript.Shell');
+            if (wsh)
+                wsh.Run(command);
+            window.onerror = window.oldOnError;
+        });*/
+
+        $('.platform-node-name').dblclick(function () {
+            if (location.pathname === '/display/' ){
+                window.open("SSH://root:abc123@" + $(this).text().split(' ')[0] + ":22");
+            }else {
+                window.open("SSH://system:abc123@" + $(this).text() + ":22");
+            }
+        });
+
     });
 
     function altRows(){
@@ -430,9 +460,6 @@ function expandWikiNode(icons, rec) {
                 var $n_e = $('#last-modified-'+ns[n_i]);
                 if ($n_e.length){
                      nodes.push({'n': ns[n_i], 't': $n_e.val()});
-                     if($n_e.attr('run') === 'N'){
-                         has_node_stopped = true;
-                     }
                 }
                 
             }

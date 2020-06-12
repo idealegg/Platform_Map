@@ -18,6 +18,7 @@ import shutil
 from django.db import connections
 from django.db.models import F
 import requests
+import ConfigParser
 
 
 class RunCollect:
@@ -409,6 +410,9 @@ class RunCollect:
         collect_time = int(end_time - begin_time)
         myLogging.logger.info("Last collecting cost %d seconds!" % collect_time)
         self.first_run = False
+      except ConfigParser.ParsingError:
+        myLogging.logger.exception("Exception in config parser!Exit!")
+        raise
       except Exception:
         myLogging.logger.exception("Exception in run_collect!")
         self.first_run = False

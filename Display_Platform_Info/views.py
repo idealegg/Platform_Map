@@ -357,19 +357,20 @@ def submit_display(request):
       nodes2 = map(lambda y: y.Name, ns)
       nodes2.sort()
       if cmp(nodes, nodes2) != 0:
-        with transaction.atomic():
-          for n in [y for y in nodes if y not in nodes2] + [y for y in nodes2 if y not in nodes]:
-            vm = virtMachine.VirMachine(n)
+        for n in [y for y in nodes if y not in nodes2] + [y for y in nodes2 if y not in nodes]:
+          vm = virtMachine.VirMachine(n)
+          with transaction.atomic():
             vm_db = vm.get_vm_db_inst()
-            old_x =None if not vm_db else vm_db.X_server
-            ret2 = vm.change_x11_fw(x if n in nodes else None)
-            ret = ret2
-            if ret2 != "Successful":
-              changed_xs = set([])
-              break
-            changed_xs.add(x)
-            if old_x:
-              changed_xs.add(old_x)
+            vm.set_x_server(x)
+          old_x =None if not vm_db else vm_db.X_server
+          ret2 = vm.change_x11_fw(x if n in nodes else None)
+          ret = ret2
+          if ret2 != "Successful":
+            changed_xs = set([])
+            break
+          changed_xs.add(x)
+          if old_x:
+            changed_xs.add(old_x)
         for cx in changed_xs:
           cx_ns = node.objects.filter(X_server=cx)
           s_ns = ' '.join(map(lambda y: y.Name, cx_ns))

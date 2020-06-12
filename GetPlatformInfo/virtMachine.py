@@ -148,7 +148,7 @@ fi
 echo "Stop MMI successfully!"
 exit 0
 ''' % (first_sleep, time_out, first_sleep, check_interval, check_interval)
-    self.execute_cmd(cmd, time_out=time_out)
+    self.execute_cmd(cmd, timeout=time_out)
     tmp_out = self.stdout.read()
     self.close_ssh()
     myLogging.logger.info(tmp_out)
@@ -190,7 +190,7 @@ exit 0
   echo "Start MMI successfully!"
   exit 0
   ''' % (first_sleep, time_out, first_sleep, check_interval, check_interval)
-    self.execute_cmd(cmd, time_out=time_out)
+    self.execute_cmd(cmd, timeout=time_out)
     tmp_out = self.stdout.read()
     self.close_ssh()
     myLogging.logger.info(tmp_out)
@@ -267,7 +267,7 @@ fi
 echo "Stop node successfully!"
 exit 0
 ''' % (first_sleep, time_out, first_sleep, check_interval, check_interval)
-    self.execute_cmd(cmd, time_out=time_out)
+    self.execute_cmd(cmd, timeout=time_out)
     tmp_out = self.stdout.read()
     self.close_ssh()
     myLogging.logger.info(tmp_out)
@@ -382,7 +382,7 @@ exit 0
         cmd = '\n'.join(map(lambda x: 'echo "%s";%s' (x, x), comms))
       else:
         cmd = '\n'.join(comms)
-      self.execute_cmd(cmd, redirect_stderr=redirect_stderr, timeout=self.conf.get_para_float('cmd_exec_timeout'))
+      self.execute_cmd(cmd, redirect_stderr=redirect_stderr, timeout=self.get_conf_inst().get_para_float('cmd_exec_timeout'))
       return True
     else:
         if pm:
@@ -392,7 +392,7 @@ exit 0
                                         is_ssh=pm.is_ping_reachable(self.attr['Name'])
                                         #is_ssh=True
           )
-          pm.execute_script(script, timeout=self.conf.get_para_float('script_exec_timeout'))
+          pm.execute_script(script, timeout=self.get_conf_inst().get_para_float('script_exec_timeout'))
           self.stdout = pm.stdout
           self.stderr = pm.stderr
           return True
@@ -427,7 +427,7 @@ EOF
     if self.get_vm_db_inst().Running == 'N':
       pm = HostMachine(self.get_vm_db_inst().Host)
       pm.init_ssh()
-      new_status = pm.update_vm_status({'Name': self.Name, 'Running': 'N'})
+      new_status = pm.update_vm_status({'Name': self.attr['Name'], 'Running': 'N'})
       if new_status == 'N':
         if pm.start_vm(self)['Controlled'] == 'N' or not pm.wait_vm_start(self, 30):
           err = 'Node failed to start!'
@@ -444,5 +444,4 @@ EOF
       pm.stop_vm(self)
     if pm:
       pm.close_ssh()
-    self.set_x_server(x)
     return err

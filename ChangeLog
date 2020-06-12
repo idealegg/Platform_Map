@@ -60,3 +60,9 @@
     2. Fix bug empty date would cause submit platform failure.
     3. Fix bug pf with empty date is a used pf.
     4. Fix bug when restart the display is empty.
+2020-06-11
+    1. Add function to start local xshell if db click node name.
+    2. Reduce the time of transaction for modifying display of stopped node.
+    3. Fix some code error.
+2020-06-12
+    1. Exit if first check conf error.
