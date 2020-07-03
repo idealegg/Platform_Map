@@ -7,6 +7,12 @@ cd GetPlatformInfo
 export PYTHONUNBUFFERED=1
 export PYTHONPATH=${WORK_DIR}/GetPlatformInfo:${WORK_DIR}:.
 
+host=`hostname`
+if [  "${host:2:2}" == "cd" ]
+then
+  export PLAT_FORM_SITE=CD
+fi
+
 # Check if there is collecting process
 pids=`ps -o pid,cmd -A|grep 'python runCollect.py'|grep -v grep|awk '{print $1}'`
 if [ ! -z "$pids" ]

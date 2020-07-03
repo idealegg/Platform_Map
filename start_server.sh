@@ -9,6 +9,12 @@ export PLATFORM_MAP_SERVER=
 
 cd ${WORK_DIR}
 
+host=`hostname`
+if [  "${host:2:2}" == "cd" ]
+then
+  export PLAT_FORM_SITE=CD
+fi
+
 # Check if there are Web servers
 pids=`ps -o pid,cmd -A|grep 'python manage.py runserver'|grep -v grep|awk '{print $1}'`
 if [ ! -z "$pids" ]

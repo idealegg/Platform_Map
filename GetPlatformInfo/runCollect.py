@@ -410,7 +410,7 @@ class RunCollect:
         collect_time = int(end_time - begin_time)
         myLogging.logger.info("Last collecting cost %d seconds!" % collect_time)
         self.first_run = False
-      except ConfigParser.ParsingError:
+      except ConfigParser.Error:
         myLogging.logger.exception("Exception in config parser!Exit!")
         raise
       except Exception:

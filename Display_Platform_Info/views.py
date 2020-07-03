@@ -361,7 +361,7 @@ def submit_display(request):
           vm = virtMachine.VirMachine(n)
           with transaction.atomic():
             vm_db = vm.get_vm_db_inst()
-            vm.set_x_server(x)
+            vm.set_x_server(x if n in nodes else None)
           old_x =None if not vm_db else vm_db.X_server
           ret2 = vm.change_x11_fw(x if n in nodes else None)
           ret = ret2

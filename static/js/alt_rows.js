@@ -45,11 +45,13 @@
         });*/
 
         $('.platform-node-name').dblclick(function () {
+            var ssh_link=null;
             if (location.pathname === '/display/' ){
-                window.open("SSH://root:abc123@" + $(this).text().split(' ')[0] + ":22");
+                ssh_link = "SSH://root:abc123@" + $(this).text().split(' ')[0] + ":22";
             }else {
-                window.open("SSH://system:abc123@" + $(this).text() + ":22");
+                ssh_link = "SSH://system:abc123@" + $(this).text() + ":22";
             }
+            window.open(ssh_link, '_blank');
         });
 
     });
