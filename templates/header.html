@@ -7,13 +7,19 @@
     <div id="header" class="uk-navbar uk-navbar-attached">
 		<div class="uk-container x-container">
 			<div id="navbar" class="uk-navbar uk-navbar-attached">
-				<a id="brand" href="/" class="uk-navbar-brand uk-visible-large">Platform Mapping</a>
+				<span class="uk-navbar-brand uk-visible-large">Platform Mapping</span>
                 <ul id="ul-navbar" class="uk-navbar-nav uk-hidden-small">
                     <li class="x-nav"><a href="/platform/"><span class="x-icon"></span>Platform node info</a></li>
                     <li class="x-nav"><a href="/physical/"><span class="x-icon"></span>Physical machine info</a></li>
                     <li class="x-nav"><a href="/display/"><span class="x-icon"></span>Display machine info</a></li>
                     <li class="x-nav"><a href="/backend/"><span class="x-icon"></span>Collect platform info</a></li>
+                    <!--li class="x-nav"><a href="/logout/"><span class="x-icon"></span>logout</a></li-->
                 </ul>
+                <span id="user-tools" class="uk-navbar-brand uk-hidden-small">
+                    Welcome,
+                    <strong id="current-login-user">{% firstof user.get_short_name user.get_username %}</strong> /
+                    <a href="/logout/" style="color: white;"><span class="x-icon"></span>LOG OUT</a>
+                </span>
             </div>
         </div>
     </div>

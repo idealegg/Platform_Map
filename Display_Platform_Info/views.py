@@ -6,15 +6,16 @@ from django.shortcuts import render
 # Create your views here.
 
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.db import transaction
+from django.db.utils import IntegrityError
 import GetPlatformInfo.runCollect as runCollect
 import GetPlatformInfo.myLogging as myLogging
 import GetPlatformInfo.virtMachine as virtMachine
 import GetPlatformInfo.xServer as xServer
 
 from django.views.decorators.csrf import csrf_exempt
-from Display_Platform_Info.models import node, host_machine, display_machine, X_server, run_state
+from Display_Platform_Info.models import node, host_machine, display_machine, X_server, run_state, User
 import Display_Platform_Info.models
 import Platform_Map.settings
 import os
@@ -25,6 +26,8 @@ import threading
 import datetime
 import json
 import time
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 
 
 MAX_WEB_CONNECTION = 5
@@ -101,6 +104,15 @@ def str2datetime(s):
   )
 
 
+def get_ip(request):
+  if 'HTTP_X_FORWARDED_FOR' in request.META:
+    ip = request.META['HTTP_X_FORWARDED_FOR']
+  else:
+    ip = request.META['REMOTE_ADDR']
+  #print "client ip: %s"  % ip
+  return ip
+
+
 @myLogging.log('views')
 def write_back_to_conf(pf):
   conf = os.path.join(Platform_Map.settings.BASE_DIR, 'conf', pf.Site, '%s.conf' % pf.Site)
@@ -162,16 +174,11 @@ def write_back_to_conf(pf):
   #sc.save()
 
 
-def index(request):
-    if request.method == 'GET':
-        return render(request, 'index.html')
-
-
 @csrf_exempt
 def generate(request):
     r = runCollect.RunCollect()
     r.run_collect()
-    return render(request, 'index.html', {'result': u"生成成功"})
+    return render(request, 'login.html', {'result': u"生成成功"})
 
 
 def clear_unuse_fields(n):
@@ -190,7 +197,13 @@ def clear_unuse_fields(n):
 
 @myLogging.log('views')
 @csrf_exempt
+@login_required()
 def platform(request):
+  ip = get_ip(request)
+  myLogging.logger.info("IP: %s, user: %s" % (ip, request.user.username))
+  request.session['IP'] = ip
+  request.session['username'] = request.user.username
+  #a=request.session.get('IP', None)
   platforms = Display_Platform_Info.models.platform.objects.all()
   sites = list(set(map(lambda x: x.Site, platforms)))
   sites.sort()
@@ -229,6 +242,7 @@ def submit_platform(request):
          'last_mod': '',
          }
   locked = False
+  myLogging.logger.info("IP: %s, user: %s" % (get_ip(request), request.user.username))
   if request.method == 'POST':
     try:
       site = request.POST.get('site').strip()
@@ -242,22 +256,33 @@ def submit_platform(request):
       pf_info = Display_Platform_Info.models.platform.objects.get(Site=site, Platform=pf)
       if str2datetime(last_mod) < pf_info.Last_modified:
         ret['ret'] = 'Platform modified by others, please refresh page!'
-      elif pf_info.Description != desc or pf_info.Owner != owner or pf_info.Validity != valid:
-        pf_info.Description = desc
-        pf_info.Owner = owner
-        pf_info.Validity = valid if valid else None
-        lock2.acquire()
-        locked = True
-        with transaction.atomic():
-          pf_info.save()
-          pf_info.Validity = valid if valid else ''
-          write_back_to_conf(pf_info)
-        ret['last_mod'] = datetime2str(pf_info.Last_modified)
-        lock2.release()
-        locked = False
-        ret['ret'] = 'Successful'
-      else:
+      elif pf_info.Description == desc and pf_info.Owner == owner and pf_info.Validity == valid:
         ret['ret'] = 'No change!'
+      else:
+        #print "user: %s" % request.user
+        #print "type: %s" % type(request.user)
+        own_right = (request.user.username.lower() == pf_info.Owner.lower()
+                      and datetime.datetime.now().date() <= pf_info.Validity)
+        get_right = (request.user.username.lower() == owner.lower()
+                      and str(datetime.datetime.now().date()) <= valid)
+        other_right = (pf_info.Owner.lower() != owner.lower()
+                      and datetime.datetime.now().date() <= pf_info.Validity)
+        if (not other_right and get_right) or (own_right and not get_right):
+          pf_info.Description = desc
+          pf_info.Owner = owner
+          pf_info.Validity = valid if valid else None
+          lock2.acquire()
+          locked = True
+          with transaction.atomic():
+            pf_info.save()
+            pf_info.Validity = valid if valid else ''
+            write_back_to_conf(pf_info)
+          ret['last_mod'] = datetime2str(pf_info.Last_modified)
+          lock2.release()
+          locked = False
+          ret['ret'] = 'Successful'
+        else:
+          ret['ret'] = 'You have no rights, please refresh page!'
     except Exception, e:
       if locked:
         lock2.release()
@@ -269,7 +294,12 @@ def submit_platform(request):
 
 @myLogging.log('views')
 @csrf_exempt
+@login_required()
 def physical(request):
+  ip = get_ip(request)
+  myLogging.logger.info("IP: %s, user: %s" % (ip, request.user.username))
+  request.session['IP'] = ip
+  request.session['username'] = request.user.username
   hms = host_machine.objects.all().order_by('Host_name')
   ret_info = []
   for hm in hms:
@@ -286,7 +316,12 @@ def physical(request):
 
 @myLogging.log('views')
 @csrf_exempt
+@login_required()
 def display(request):
+  ip = get_ip(request)
+  myLogging.logger.info("IP: %s, user: %s" % (ip, request.user.username))
+  request.session['IP'] = ip
+  request.session['username'] = request.user.username
   room_infos = []
   ds = display_machine.objects.all()
   for room in rooms:
@@ -311,6 +346,7 @@ def display(request):
                             'Host_name': d.Host_name,
                             'n_t': datetime2str(d.Last_modified),
                             'os': d.Thalix,
+                            'usr': d.Owner,
                            }, 'xs': a_dm})
     room_infos.append({'room': room, 'ds': a_room})
   #print "ds: %s" % ds
@@ -321,12 +357,25 @@ def display(request):
 
 
 @myLogging.log('views')
+def update_dm_user(host, user):
+  try:
+    dm = display_machine.objects.get(Node=host, Owner="")
+  except:
+    myLogging.logger.info("Owner exists! Skip update.")
+    return
+  dm.Owner = user
+  dm.save()
+  
+
+@myLogging.log('views')
 @csrf_exempt
 def submit_display(request):
+  myLogging.logger.info("IP: %s, user: %s" % (get_ip(request), request.user.username))
   ret = 'Failed'
   ret2 = ''
   ret_cx =  []
   changed_xs = set([])
+  host = ""
   locked = False
   if request.method == 'POST':
     try:
@@ -397,6 +446,8 @@ def submit_display(request):
       if locked:
         lock3.release()
         #locked = False
+      if ret == "Successful":
+        update_dm_user(host, request.user.username)
   myLogging.logger.info('ret: %s' % ret)
   myLogging.logger.info('cx: %s' % ret_cx)
   return JsonResponse({'ret': ret, 'cx': ret_cx})
@@ -405,6 +456,7 @@ def submit_display(request):
 @myLogging.log('views')
 @csrf_exempt
 def submit_restart_mmi(request):
+  myLogging.logger.info("IP: %s, user: %s" % (get_ip(request), request.user.username))
   ret = 'Failed'
   vm = None
 
@@ -460,6 +512,8 @@ def submit_restart_mmi(request):
     finally:
       if vm and vm.db_inst.Restarting:
         vm.save_restarting(False)
+      if ret == "Successful":
+        update_dm_user(host, request.user.username)
   n_t = datetime2str(vm.db_inst.Last_modified) if vm else ''
   myLogging.logger.info('ret: %s, n_t: %s' % (ret, n_t))
   return JsonResponse({'ret': ret, 'n_t': n_t})
@@ -468,6 +522,7 @@ def submit_restart_mmi(request):
 @myLogging.log('views')
 @csrf_exempt
 def submit_tty(request):
+  myLogging.logger.info("IP: %s, user: %s" % (get_ip(request), request.user.username))
   ret = 'Failed'
   locked = False
   n_t = ''
@@ -521,6 +576,8 @@ def submit_tty(request):
     finally:
       if locked:
         lock4.release()
+      if ret == "Successful":
+        update_dm_user(host, request.user.username)
         #locked = False
   myLogging.logger.info('ret: %s, n_t: %s' % (ret, n_t))
   return JsonResponse({'ret': ret, 'n_t': n_t})
@@ -537,7 +594,12 @@ def backend(request):
 
 @myLogging.log('views')
 @csrf_exempt
+@login_required()
 def backend2(request):
+  ip = get_ip(request)
+  myLogging.logger.info("IP: %s, user: %s" % (ip, request.user.username))
+  request.session['IP'] = ip
+  request.session['username'] = request.user.username
   now = datetime.datetime.now()
   rss = run_state.objects.all().order_by('-Counter', 'Begin')
   max_begin = max(map(lambda x: x.Begin, rss)) if rss.count() else now
@@ -607,3 +669,91 @@ def backend_push(request):
       sockets[sock]['begin'] = dt
     lock.release()
   return HttpResponse('ok')
+
+
+valid_users ={'time': datetime.datetime.min, 'list':[]}
+blacklist = ['tools', 'ben', 'dengzp', 'lixinwei', 'eleroux', 'liudan', 'ss', 'alex', 'lir', 'liuh', 'wangj']
+whitelist = []
+
+
+@myLogging.log('views')
+def update_valid_user():
+  try:
+    vm = virtMachine.VirMachine('tai2')
+    vm.set_user('system')
+    vm.init_ssh()
+    vm.execute_cmd("/usr/bin/awk -F':' '/home/{print $1}' /etc/passwd")
+    global valid_users
+    valid_users['list'] = [x.strip() for x in vm.stdout]
+    vm.close_ssh()
+    valid_users['time'] = datetime.datetime.now()
+    myLogging.logger.info(valid_users)
+  except:
+    myLogging.logger.exception("update_valid_user failed!")
+
+
+def is_valid_user(usr):
+  # update every 7 days
+  if valid_users['time'] == datetime.datetime.min or datetime.datetime.now() - valid_users['time'] > datetime.timedelta(7):
+    update_valid_user()
+  return usr in whitelist or (usr in valid_users['list'] and usr not in blacklist)
+
+
+@myLogging.log('views')
+def reg(request):
+    myLogging.logger.info("IP: %s, user: %s" % (get_ip(request), request.user.username))
+    if request.method == 'GET':
+        return render(request, 'reg.html')
+    elif request.method == 'POST':
+        username = request.POST.get('username').lower()
+        if not is_valid_user(username):
+          return HttpResponse('Usenname should be a tai2 user account!')
+        pwd = request.POST.get('password')
+        if len(pwd) < 6:
+          return HttpResponse('Password should not less than 6 chars!')
+        mobile = request.POST.get('mobile')
+        if (len(mobile)!=11) or mobile[0]!='1' or not mobile.isdigit():
+          return HttpResponse('Invalid mobile!')
+        email = request.POST.get('email')
+        if not email.endswith('@easysky.com.cn') or len(email) < 17:
+          return HttpResponse('Invalid email!')
+        myLogging.logger.info("usr: %s, mobile: %s, email: %s" % (username, mobile, email))
+        # 插入信息
+        try:
+          User.objects.create_user(username=username, password=pwd, email=email, mobile=mobile)
+        except IntegrityError:
+          return HttpResponse('User existed!')
+        return HttpResponseRedirect('/login/')
+    return HttpResponseRedirect('/reg/')
+
+
+@myLogging.log('views')
+def log_in(request):
+  myLogging.logger.info("IP: %s, user: %s" % (get_ip(request), request.user.username))
+  #is_authenticated = False
+  #if request.user.is_authenticated:
+  #  pass
+  if request.method == 'GET':
+      return render(request, 'login.html')
+  elif request.method == 'POST':
+    username = request.POST.get('username').lower()
+    pwd = request.POST.get('password')
+    #print "ip: %s" % get_ip(request)
+    #print "user: %s, passwd: %s" % (username, pwd)
+    myLogging.logger.info("usr: %s" % (username,))
+    usern = authenticate(username=username, password=pwd)
+    print "usern: %s" % usern
+    if usern:
+      login(request, usern)  # 登陆
+      next_url = request.GET.get('next', None)
+      if not next_url:
+        next_url = '/platform/'
+      return HttpResponseRedirect(next_url)
+  return HttpResponseRedirect('/login/')
+
+
+@myLogging.log('views')
+def log_out(request):
+  myLogging.logger.info("IP: %s, user: %s" % (get_ip(request), request.user.username))
+  logout(request)
+  return HttpResponseRedirect('/login/')

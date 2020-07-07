@@ -47,7 +47,7 @@
         $('.platform-node-name').dblclick(function () {
             var ssh_link=null;
             if (location.pathname === '/display/' ){
-                ssh_link = "SSH://root:abc123@" + $(this).text().split(' ')[0] + ":22";
+                ssh_link = "SSH://root:abc123@" + $(this).text().split(' ', 1)[0] + ":22";
             }else {
                 ssh_link = "SSH://system:abc123@" + $(this).text() + ":22";
             }
@@ -81,6 +81,7 @@
             var valids = $('.Wdate');
             for (i = 0; i < valids.length; i++) {
                 checkValidity(valids[i]);
+                //onClickSelectDate(valids[i]);
             }
     }
 
@@ -183,6 +184,7 @@ function expandWikiNode(icons, rec) {
             sp.attr('class', 'uk-icon-check');
             a_pf.css('color', 'red');
           }
+
     }
 
     function onClickSelectDate(t) {
@@ -205,18 +207,22 @@ function expandWikiNode(icons, rec) {
 
     function submit_platform(site, pf, b) {
         //console.log('submit_platform');
+        function date2byte(s){
+            return s > 10 ? s: '0'+s;
+        }
         var $b1 = $(b),
             $err = $b1.next(),
             $div = $b1.parent().parent(),
-            $inputs = $div.find('>div>input'),
-            $valid =  $inputs.get(2).value;
+            $valid =  $div.find('.Wdate').val();
+
 
         //console.log($err);
+        console.log("valid:"+$valid);
         if ($valid != "") {
             //console.log($valid);
             var date = new Date(Date.parse($valid));
             //console.log(date);
-            $valid = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+            $valid = date.getFullYear() + '-' + date2byte((date.getMonth() + 1)) + '-' + date2byte(date.getDate());
         }
         $err.text('Submitting...');
         $err.css('color', '#e28327');
@@ -227,8 +233,8 @@ function expandWikiNode(icons, rec) {
             {
             site: site,
             pf: pf,
-            desc: $inputs.get(0).value,
-            owner: $inputs.get(1).value,
+            desc: $div.find('.description').val(),
+            owner: $div.find('.owner').val(),
             valid: $valid,
             last_mod: $('#last-modified-'+site+'-'+pf).val()},
             type: "POST",
@@ -245,6 +251,7 @@ function expandWikiNode(icons, rec) {
                 if(res['ret'] === 'Successful'){
                     $('#last-modified-'+site+'-'+pf).val(res['last_mod']);
                     $err.css('color', '#00ff00');
+                    $div.find('.owner').attr('mine', 'true');
                 }else{
                     $err.css('color', '#ff0000');
                 }
@@ -265,11 +272,20 @@ function expandWikiNode(icons, rec) {
     function dbclick_display_tty(t) {
         //console.log('host:');
         var $pppp = $(t).parents('.column_item');
-        var host = $pppp.find('.dm_host').text().split(' ')[0];
+        var $tmp = $pppp.find('.dm_host').text().split(' ');
+        var host = $tmp[0];
+        var h_usr = $tmp[2].substring(1, $tmp[2].length-1).toLowerCase();
+        var c_usr = $('#current-login-user').text().trim().toLowerCase();
         var $err = $pppp.find('#error_message');
         var $old = $pppp.find('.tty_text[active="True"]');
         var prefix = 'ChTTY: ';
 
+        if ((h_usr != "")&&(c_usr != h_usr)){
+            $err.text(prefix+'You could not change others display!');
+            $err.css('color', '#ff0000');
+            return;
+        }
+        
         if ($(t).attr('active') == 'True') {
             $err.text(prefix+'No change');
             $err.css('color', '#e28327');
@@ -307,6 +323,9 @@ function expandWikiNode(icons, rec) {
                 $old.attr('active', 'False');
                 $(t).attr('active', 'True');
                 $n_t_i.val(res['n_t']);
+                if (h_usr == ""){
+                   $pppp.find('.dm_host').text($tmp[0]+" "+$tmp[1]+" ("+c_usr+")");
+                }
             }
         },
         complete: function () {
@@ -332,7 +351,10 @@ function expandWikiNode(icons, rec) {
     function onclick_restart_mmi_btn(t) {
         //console.log('host:');
         var $pppp = $(t).parents('.column_item');
-        var host = $pppp.find('.dm_host').text().split(' ')[0];
+        var $tmp = $pppp.find('.dm_host').text().split(' ');
+        var host = $tmp[0];
+        var h_usr = $tmp[2].substring(1, $tmp[2].length-1).toLowerCase();
+        var c_usr = $('#current-login-user').text().trim().toLowerCase();
         var $err = $pppp.find('#error_message');
         var $timeout = $pppp.find('.timeout_value');
 
@@ -343,6 +365,12 @@ function expandWikiNode(icons, rec) {
         var prefix = 'Restart: ';
         var counter = null;
         var left_s = parseInt($timeout.val());
+
+        if ((h_usr != "")&&(c_usr != h_usr)){
+            $err.text(prefix+'You could not change others display!');
+            $err.css('color', '#ff0000');
+            return;
+        }
 
         //console.log($node_inf);
         //console.log($n_t_i);
@@ -414,6 +442,9 @@ function expandWikiNode(icons, rec) {
                 $err.css('color', '#ff0000');
             }else {
                 $err.css('color', '#00ff00');
+                if (h_usr == ""){
+                    $pppp.find('.dm_host').text($tmp[0]+" "+$tmp[1]+" ("+c_usr+")");
+                }
             }
         },
         complete: function () {
@@ -475,7 +506,10 @@ function expandWikiNode(icons, rec) {
         var $pp = $(t).parents('.tty_info');
         var tty = $pp.find('.tty_text').text();
         var $pppp = $(t).parents('.column_item');
-        var host = $pppp.find('.dm_host').text().split(' ')[0];
+        var $tmp = $pppp.find('.dm_host').text().split(' ');
+        var host = $tmp[0];
+        var h_usr = $tmp[2].substring(1, $tmp[2].length-1).toLowerCase();
+        var c_usr = $('#current-login-user').text().trim().toLowerCase();
         var $err = $pppp.find('#error_message');
         //console.log(host);
         //console.log(tty);
@@ -487,7 +521,13 @@ function expandWikiNode(icons, rec) {
         var node_inf = null;
         var node_txt = null;
         var prefix = 'ChNode: ';
-
+        
+        if ((h_usr != "")&&(c_usr != h_usr)){
+            $err.text(prefix+'You could not change others display!');
+            $err.css('color', '#ff0000');
+            return;
+        }
+        
         //var padding = $(t).css('padding-left');
         //给td设置宽度和给input设置宽度并赋值
         $(t).html("<input type='text'>").find("input").width(width).val(tdPreText.trim()).focus();
@@ -571,6 +611,9 @@ function expandWikiNode(icons, rec) {
                                         }
                                     }
                                 }
+                            }
+                            if (h_usr == ""){
+                                $pppp.find('.dm_host').text($tmp[0]+" "+$tmp[1]+" ("+c_usr+")");
                             }
                         }
                     },

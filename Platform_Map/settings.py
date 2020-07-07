@@ -133,3 +133,19 @@ if 'PLATFORM_MAP_SERVER' in os.environ:
     with open(os.path.join(BASE_DIR, 'conf', 'logging.json')) as logging_json:
         j_str = logging_json.read().replace('log/', 'log/server_')
         LOGGING = json.loads(j_str)
+
+# 指定本项目用户模型类
+AUTH_USER_MODEL = 'Display_Platform_Info.User'  # 应用名称.模型类名称
+LOGIN_URL = '/login/'
+AUTHENTICATION_BACKENDS = [ 'Display_Platform_Info.user_model_backend.UserModelBackend']
+
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # 引擎（默认）
+
+SESSION_COOKIE_NAME = "sessionid"  # Session的cookie保存在浏览器上时的key，即：sessionid＝随机字符串（默认）
+SESSION_COOKIE_PATH = "/"  # Session的cookie保存的路径（默认）
+SESSION_COOKIE_DOMAIN = None  # Session的cookie保存的域名（默认）
+SESSION_COOKIE_SECURE = False  # 是否Https传输cookie（默认）
+SESSION_COOKIE_HTTPONLY = True  # 是否Session的cookie只支持http传输（默认）
+SESSION_COOKIE_AGE = 24 * 60 * 60  # Session的cookie失效日期（2周）（默认）
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 是否关闭浏览器使得Session过期（默认）
+SESSION_SAVE_EVERY_REQUEST = False  # 是否每次请求都保存Session，默认修改之后才保存（默认）

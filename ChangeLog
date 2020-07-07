@@ -66,4 +66,15 @@
     3. Fix some code error.
 2020-06-12
     1. Exit if first check conf error.
+2020-07-07
+1. Add user reg function. Only user in tai2 could reg. There are white list and black list.
+2. Add user login and auth function. User could use mobile and email to login.
+3. Limit user activity in page platform. Only getting right from no rights platform or release right are permitted.
+4. Limit user activity in page display. Only the owner could modify display of a dm.
+5. To display the owner of a dm.
+6. Add auth user display in header.
+7. Add logout function.
+8. Modify session paramters.
+9. Add admin page.
+
     2+32+2 + 4+2 + 8 + 4 + 2+ 8 +2 + 6 + 2

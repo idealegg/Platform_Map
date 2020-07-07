@@ -86,7 +86,7 @@
                     <label class="pf_label">Validity: </label>
                     <!--<input type="date" value="2019-01-01" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd'});javascript:{$('#eta').trigger('change')}"/> -->
                     <input id="select-date-{{ site.site_name }}-{{ pf.pf_name }}" class="Wdate" value="{{ pf.valid|date:"Y-m-d" }}" onfocus="onClickSelectDate(this)" />
-                    <span></span>
+                    <span id="val-flag-{{ site.site_name }}-{{ pf.pf_name }}"></span>
                 </div>
                 <div class="info_line">
                     <button value="submit" onclick="submit_platform('{{ site.site_name }}', '{{ pf.pf_name }}', this)">submit</button>

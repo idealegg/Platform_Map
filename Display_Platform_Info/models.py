@@ -5,6 +5,15 @@ from django.db import models
 
 # Create your models here.
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+
+
+class User(AbstractUser):
+    mobile = models.CharField(max_length=11)
+    Last_modified = models.DateTimeField(auto_now=True)
+
+    class Meta:
+      db_table = 'User'
 
 
 class platform(models.Model):
@@ -12,10 +21,11 @@ class platform(models.Model):
   Site = models.CharField(max_length=6)
   Platform = models.CharField(max_length=10)
   Description = models.CharField(max_length=100, null=True, default='')
-  Owner = models.CharField(max_length=30, null=True, default='')
+  Owner = models.CharField(max_length=150, null=True, default='')
   Validity = models.DateField(null=True, default='')
   Last_modified = models.DateTimeField(auto_now=True)
   Created = models.DateTimeField(auto_now_add=True)
+
   class Meta:
     db_table = 'platform'
 
@@ -44,6 +54,7 @@ class display_machine(models.Model):
   IP = models.CharField(max_length=100, default='')
   Host_name = models.CharField(max_length=20, default='')
   Thalix = models.CharField(max_length=10, default='11.0')
+  Owner = models.CharField(max_length=150, null=True, default='')
   Last_modified = models.DateTimeField(auto_now=True)
   Created = models.DateTimeField(auto_now_add=True)
 
@@ -103,6 +114,13 @@ class run_state(models.Model):
   State = models.CharField(max_length=10)
   Counter = models.BigIntegerField()
   Current_platform = models.ForeignKey(platform, on_delete=models.SET_NULL, null=True, default=None)
+
+  def used(self):
+    if self.End and self.Begin:
+      dlt = str(self.End - self.Begin)
+      return dlt[:dlt.rfind('.')]
+    else:
+      return '0:00:00'
 
   class Meta:
     db_table = 'run_state'
