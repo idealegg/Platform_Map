@@ -19,9 +19,9 @@ class SQLDisplayMachine(SQLOperator):
   def save(self, is_init=False):
     self.db_inst = display_machine(**self.attr)
     if not is_init:
-      self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']})
+      self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']}, kept={'Owner'})
     else:
-      self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']}, kept={'IP', 'Host_name', 'Thalix'})
+      self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']}, kept={'IP', 'Host_name', 'Thalix', 'Owner'})
 
   def set_ip(self, ip):
     self.attr['IP'] = ip
@@ -34,7 +34,7 @@ class SQLDisplayMachine(SQLOperator):
 
   @classmethod
   def get_inst_by_ip(cls, ip):
-    dm_set = display_machine.objects.filter(Q(IP__contains="%s "%ip) | Q(IP__endswith=ip))
+    dm_set = display_machine.objects.filter(Q(IP__contains="%s "%ip) | Q(IP=ip) | Q(IP__endswith=" %s"%ip))
     if dm_set.count():
       return dm_set[0]
     else:

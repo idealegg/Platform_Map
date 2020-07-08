@@ -60,6 +60,7 @@ if 'PLAT_FORM_SITE' not in os.environ or os.environ['PLAT_FORM_SITE'] == 'JV':
      ]
      }, # floor 16
   ]
+  NON_IHP_ROOMS = ['HDS', 'HIM']
 else:
   ROOM_MAPPING = [
     {'name': '内厅', 'rooms':
@@ -69,6 +70,7 @@ else:
       [{'short': 'BEC', 'name': '平台区'}]
     },
   ]
+  NON_IHP_ROOMS = []
 rooms = []
 for room_map in ROOM_MAPPING:
   rooms.extend(map(lambda x: x['short'], room_map['rooms']))
@@ -358,13 +360,19 @@ def display(request):
 
 @myLogging.log('views')
 def update_dm_user(host, user):
-  try:
-    dm = display_machine.objects.get(Node=host, Owner="")
-  except:
-    myLogging.logger.info("Owner exists! Skip update.")
-    return
-  dm.Owner = user
-  dm.save()
+  found = False
+  for room in NON_IHP_ROOMS:
+    if host.startswith(room.lower()):
+      found = True
+      break
+  if found:
+    try:
+      dm = display_machine.objects.get(Node=host, Owner="")
+    except:
+      myLogging.logger.info("Owner exists! Skip update.")
+      return
+    dm.Owner = user
+    dm.save()
   
 
 @myLogging.log('views')

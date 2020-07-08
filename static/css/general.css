@@ -122,9 +122,36 @@
         margin:2px;
         border:solid 1px #ddd;
         border-radius: 7px;
+        padding: 2px;
+    }
+
+    .dm-host-name {
+        margin:2px;
+        padding: 2px;
+        float: left;
         color: #e28327;
         font-size: 20px;
+    }
+
+    .dm-os {
+        margin:2px;
         padding: 2px;
+        float: left;
+        color: #7be254;
+        font-size: 18px;
+        font-weight: bolder;
+        /*text-decoration : underline;*/
+        border:solid 1px #66512c;
+        border-radius: 4px;
+    }
+
+    .dm-usr {
+        margin:2px;
+        padding: 2px;
+        float: left;
+        color: #c58ae2;
+        font-size: 18px;
+        /*font-style: italic;*/
     }
 
     .dpy_info {

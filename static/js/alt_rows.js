@@ -272,15 +272,17 @@ function expandWikiNode(icons, rec) {
     function dbclick_display_tty(t) {
         //console.log('host:');
         var $pppp = $(t).parents('.column_item');
-        var $tmp = $pppp.find('.dm_host').text().split(' ');
-        var host = $tmp[0];
-        var h_usr = $tmp[2].substring(1, $tmp[2].length-1).toLowerCase();
+        var $tmp = $pppp.find('.dm_host');
+        var div_host = $tmp.find('.dm-host-name');
+        var host = div_host.text();
+        var div_usr = $tmp.find('.dm-usr');
+        var h_usr = div_usr.text().toLowerCase();
         var c_usr = $('#current-login-user').text().trim().toLowerCase();
         var $err = $pppp.find('#error_message');
         var $old = $pppp.find('.tty_text[active="True"]');
         var prefix = 'ChTTY: ';
 
-        if ((h_usr != "")&&(c_usr != h_usr)){
+        if ((host.indexOf('ihp')==-1)&&(h_usr != "")&&(c_usr != h_usr)){
             $err.text(prefix+'You could not change others display!');
             $err.css('color', '#ff0000');
             return;
@@ -324,7 +326,7 @@ function expandWikiNode(icons, rec) {
                 $(t).attr('active', 'True');
                 $n_t_i.val(res['n_t']);
                 if (h_usr == ""){
-                   $pppp.find('.dm_host').text($tmp[0]+" "+$tmp[1]+" ("+c_usr+")");
+                   div_usr.text(c_usr);
                 }
             }
         },
@@ -351,9 +353,11 @@ function expandWikiNode(icons, rec) {
     function onclick_restart_mmi_btn(t) {
         //console.log('host:');
         var $pppp = $(t).parents('.column_item');
-        var $tmp = $pppp.find('.dm_host').text().split(' ');
-        var host = $tmp[0];
-        var h_usr = $tmp[2].substring(1, $tmp[2].length-1).toLowerCase();
+        var $tmp = $pppp.find('.dm_host');
+        var div_host = $tmp.find('.dm-host-name');
+        var host = div_host.text();
+        var div_usr = $tmp.find('.dm-usr');
+        var h_usr = div_usr.text().toLowerCase();
         var c_usr = $('#current-login-user').text().trim().toLowerCase();
         var $err = $pppp.find('#error_message');
         var $timeout = $pppp.find('.timeout_value');
@@ -366,7 +370,7 @@ function expandWikiNode(icons, rec) {
         var counter = null;
         var left_s = parseInt($timeout.val());
 
-        if ((h_usr != "")&&(c_usr != h_usr)){
+        if ((host.indexOf('ihp')==-1)&&(h_usr != "")&&(c_usr != h_usr)){
             $err.text(prefix+'You could not change others display!');
             $err.css('color', '#ff0000');
             return;
@@ -443,7 +447,7 @@ function expandWikiNode(icons, rec) {
             }else {
                 $err.css('color', '#00ff00');
                 if (h_usr == ""){
-                    $pppp.find('.dm_host').text($tmp[0]+" "+$tmp[1]+" ("+c_usr+")");
+                    div_usr.text(c_usr);
                 }
             }
         },
@@ -506,9 +510,11 @@ function expandWikiNode(icons, rec) {
         var $pp = $(t).parents('.tty_info');
         var tty = $pp.find('.tty_text').text();
         var $pppp = $(t).parents('.column_item');
-        var $tmp = $pppp.find('.dm_host').text().split(' ');
-        var host = $tmp[0];
-        var h_usr = $tmp[2].substring(1, $tmp[2].length-1).toLowerCase();
+        var $tmp = $pppp.find('.dm_host');
+        var div_host = $tmp.find('.dm-host-name');
+        var host = div_host.text();
+        var div_usr = $tmp.find('.dm-usr');
+        var h_usr = div_usr.text().toLowerCase();
         var c_usr = $('#current-login-user').text().trim().toLowerCase();
         var $err = $pppp.find('#error_message');
         //console.log(host);
@@ -522,7 +528,7 @@ function expandWikiNode(icons, rec) {
         var node_txt = null;
         var prefix = 'ChNode: ';
         
-        if ((h_usr != "")&&(c_usr != h_usr)){
+        if ((host.indexOf('ihp')==-1)&&(h_usr != "")&&(c_usr != h_usr)){
             $err.text(prefix+'You could not change others display!');
             $err.css('color', '#ff0000');
             return;
@@ -613,7 +619,7 @@ function expandWikiNode(icons, rec) {
                                 }
                             }
                             if (h_usr == ""){
-                                $pppp.find('.dm_host').text($tmp[0]+" "+$tmp[1]+" ("+c_usr+")");
+                                div_usr.text(c_usr);
                             }
                         }
                     },
