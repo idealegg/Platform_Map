@@ -263,28 +263,41 @@ def submit_platform(request):
       else:
         #print "user: %s" % request.user
         #print "type: %s" % type(request.user)
-        own_right = (request.user.username.lower() == pf_info.Owner.lower()
-                      and datetime.datetime.now().date() <= pf_info.Validity)
-        get_right = (request.user.username.lower() == owner.lower()
-                      and str(datetime.datetime.now().date()) <= valid)
-        other_right = (pf_info.Owner.lower() != owner.lower()
-                      and datetime.datetime.now().date() <= pf_info.Validity)
-        if (not other_right and get_right) or (own_right and not get_right):
-          pf_info.Description = desc
-          pf_info.Owner = owner
-          pf_info.Validity = valid if valid else None
-          lock2.acquire()
-          locked = True
-          with transaction.atomic():
-            pf_info.save()
-            pf_info.Validity = valid if valid else ''
-            write_back_to_conf(pf_info)
-          ret['last_mod'] = datetime2str(pf_info.Last_modified)
-          lock2.release()
-          locked = False
-          ret['ret'] = 'Successful'
-        else:
-          ret['ret'] = 'You have no rights, please refresh page!'
+        input_owners = owner.lower().split()
+        check_user = True
+        for input_owner in input_owners:
+          try:
+            User.objects.get(username=input_owner)
+          except User.DoesNotExist:
+            ret['ret'] = 'User name "%s" is invalid!' % input_owner
+            check_user = False
+            break
+        if check_user:
+          pf_valid = pf_info.Validity if pf_info.Validity else datetime.datetime.min.date()
+          own_right = (request.user.username.lower() in pf_info.Owner.lower().split()
+                        and datetime.datetime.now().date() <= pf_valid)
+          get_right = (request.user.username.lower() in owner.lower().split()
+                        and str(datetime.datetime.now().date()) <= valid)
+          other_right = ((request.user.username.lower() not in (set(pf_info.Owner.lower().split()) &
+                          set(owner.lower().split())))
+                        and datetime.datetime.now().date() <= pf_valid)
+          myLogging.logger.info("own_right: %s, get_right: %s, other_right: %s" % (own_right, get_right, other_right))
+          if (not other_right and get_right) or (own_right and not get_right):
+            pf_info.Description = desc
+            pf_info.Owner = owner
+            pf_info.Validity = valid if valid else None
+            lock2.acquire()
+            locked = True
+            with transaction.atomic():
+              pf_info.save()
+              pf_info.Validity = valid if valid else ''
+              write_back_to_conf(pf_info)
+            ret['last_mod'] = datetime2str(pf_info.Last_modified)
+            lock2.release()
+            locked = False
+            ret['ret'] = 'Successful'
+          else:
+            ret['ret'] = 'You have no rights, please refresh page!'
     except Exception, e:
       if locked:
         lock2.release()
@@ -668,6 +681,7 @@ def backend_push(request):
                             'Platform': x.Current_platform.Platform,
                             'Begin': datetime2str(x.Begin) if x.Begin else '',
                             'End': datetime2str(x.End) if x.End else '',
+                            'Used': x.used(),
                             'State': rs_s if x.Begin == dt else 'Completed',
                             'Counter': x.Counter,
                            },
@@ -702,7 +716,7 @@ def update_valid_user():
 
 def is_valid_user(usr):
   # update every 7 days
-  if valid_users['time'] == datetime.datetime.min or datetime.datetime.now() - valid_users['time'] > datetime.timedelta(7):
+  if valid_users['time'] == datetime.datetime.min or datetime.datetime.now() - valid_users['time'] > datetime.timedelta(minutes=30):
     update_valid_user()
   return usr in whitelist or (usr in valid_users['list'] and usr not in blacklist)
 
@@ -714,18 +728,18 @@ def reg(request):
         return render(request, 'reg.html')
     elif request.method == 'POST':
         username = request.POST.get('username').lower()
+        pwd = request.POST.get('password')
+        mobile = request.POST.get('mobile')
+        email = request.POST.get('email')
+        myLogging.logger.info("usr: %s, mobile: %s, email: %s" % (username, mobile, email))
         if not is_valid_user(username):
           return HttpResponse('Usenname should be a tai2 user account!')
-        pwd = request.POST.get('password')
         if len(pwd) < 6:
           return HttpResponse('Password should not less than 6 chars!')
-        mobile = request.POST.get('mobile')
         if (len(mobile)!=11) or mobile[0]!='1' or not mobile.isdigit():
           return HttpResponse('Invalid mobile!')
-        email = request.POST.get('email')
         if not email.endswith('@easysky.com.cn') or len(email) < 17:
           return HttpResponse('Invalid email!')
-        myLogging.logger.info("usr: %s, mobile: %s, email: %s" % (username, mobile, email))
         # 插入信息
         try:
           User.objects.create_user(username=username, password=pwd, email=email, mobile=mobile)
@@ -736,12 +750,19 @@ def reg(request):
 
 
 @myLogging.log('views')
+@csrf_exempt
 def log_in(request):
   myLogging.logger.info("IP: %s, user: %s" % (get_ip(request), request.user.username))
   #is_authenticated = False
   #if request.user.is_authenticated:
   #  pass
+  next_url = '/platform/'
   if request.method == 'GET':
+    if request.user.is_authenticated:
+      #myLogging.logger.info("authed")
+      return HttpResponseRedirect(next_url)
+    else:
+      #myLogging.logger.info("no authed")
       return render(request, 'login.html')
   elif request.method == 'POST':
     username = request.POST.get('username').lower()
@@ -753,9 +774,7 @@ def log_in(request):
     print "usern: %s" % usern
     if usern:
       login(request, usern)  # 登陆
-      next_url = request.GET.get('next', None)
-      if not next_url:
-        next_url = '/platform/'
+      next_url = request.GET.get('next', next_url)
       return HttpResponseRedirect(next_url)
   return HttpResponseRedirect('/login/')
 
@@ -764,4 +783,32 @@ def log_in(request):
 def log_out(request):
   myLogging.logger.info("IP: %s, user: %s" % (get_ip(request), request.user.username))
   logout(request)
+  return HttpResponseRedirect('/login/')
+
+
+@myLogging.log('views')
+@login_required()
+def passwd(request):
+  myLogging.logger.info("IP: %s, user: %s" % (get_ip(request), request.user.username))
+  if request.method == 'GET':
+    return render(request, 'passwd.html')
+  elif request.method == 'POST':
+    username = request.user.username
+    pwd = request.POST.get('password')
+    mobile = request.POST.get('mobile')
+    email = request.POST.get('email')
+    myLogging.logger.info("usr: %s, mobile: %s, email: %s" % (username, mobile, email))
+    try:
+      user = User.objects.get(username=username)
+    except User.DoesNotExist:
+      return HttpResponse('Invalid username!')
+    if user.email != email:
+      return HttpResponse('Email does not match the old one!')
+    if user.mobile != mobile:
+      return HttpResponse('Mobile does not match the old one!')
+    if len(pwd) < 6:
+      return HttpResponse('Password should not less than 6 chars!')
+    user.set_password(pwd)
+    user.save()
+    logout(request)
   return HttpResponseRedirect('/login/')

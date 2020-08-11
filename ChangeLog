@@ -76,5 +76,16 @@
 7. Add logout function.
 8. Modify session paramters.
 9. Add admin page.
-
-    2+32+2 + 4+2 + 8 + 4 + 2+ 8 +2 + 6 + 2
+2020-07-08
+1. Optimise the admin pages.
+2. Fix bug the owner of dm would lose.
+3. Optimise the page to display dm host/os/user.
+4. Add display min/all buttons in display page.
+5. Add DEBUG open/close function.
+6. Modify session period from 1 day to 7 days.
+2020-07-09~2020-08-11
+1. Add display mine/all functions for platform/display pages.
+2. Fix bugs on backend2 page.
+3. Modify the update frequency to get user list from tai2.
+4. Add passwd change function.
+5. etc.

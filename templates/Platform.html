@@ -46,7 +46,7 @@
                     {% endifnotequal %}
                     <a href="#div-{{ site.site_name }}" class="x-wiki-index-item">{{site.site_name}}</a>
                     {%  for pf in site.pfs %}
-                        <div id="menu-{{ pf.pf_name }}" depth="1" style="display: none;position: relative; margin-left: 15px;">
+                        <div id="menu-{{ site.site_name }}-{{ pf.pf_name }}" depth="1" style="display: none;position: relative; margin-left: 15px;">
                             <a href="#div-{{ site.site_name }}-{{ pf.pf_name }}" id="a-{{ site.site_name }}-{{ pf.pf_name }}"
                                class="x-wiki-index-item">{{ pf.pf_name }}</a>
                         </div>
@@ -54,6 +54,12 @@
                     </div>
                 {% endfor %}
             </ul>
+            <div>
+                <div>
+                    <button class="display_mine_all" id="display_mine"  onclick="onclick_display_mine_btn2(true)">Display mine</button>
+                    <button class="display_mine_all" id="display_all"  onclick="onclick_display_mine_btn2(false)">Display all</button>
+                </div>
+            </div>
         </div>
 
         <div class="right_content">

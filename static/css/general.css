@@ -249,5 +249,27 @@
         color: #79aec8;
     }
 
-
+    .display_mine_all {
+        margin:10px;
+        border:solid 1px #227449;
+        border-radius: 4px;
+        padding: 1px;
+        background: #3decbf;
+        width: 100px;
+        height: 20px;
+        color: #301d14;
+        font-style: italic;
+        left: 10px;
+        /*font-weight: bold;*/
+    }
+    .note {
+        padding: 4px;
+        /*border: dashed 1px grey;
+        border-radius: 4px;*/
+        color: #2318ff;
+        left: 0;
+        right:0;
+        /*background: #d5d5d5;*/
+        background: #ffff00;
+    }
 

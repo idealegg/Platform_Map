@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.conf import settings
 from Display_Platform_Info import views
 
 urlpatterns = [
@@ -36,4 +37,10 @@ urlpatterns = [
     url(r'^logout/$', views.log_out),
     url(r'^backend_push/$', views.backend_push),
     url(r'client_connect/$', views.client_connect),
+    url(r'passwd/$', views.passwd),
 ]
+
+if not settings.DEBUG:
+    from django.views import static
+    urlpatterns.append(url(r'^static/(?P<path>.*)$', static.serve,
+        {'document_root': settings.STATIC_ROOT}, name='static'))

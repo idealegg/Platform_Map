@@ -25,11 +25,12 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(models.platform)
 class PlatformAdmin(admin.ModelAdmin):
-    list_display = ('id', 'Site', 'Platform', 'Description', 'Owner', 'Validity')
+    list_display = ('id', 'Site', 'Platform', 'Description', 'Owner', 'Validity', 'used')
     list_per_page = 10
     ordering = ('Site', 'Platform')
-    list_editable = list(list_display[1:])
+    list_editable = list(list_display[1:-1])
     list_filter = ('Site', 'Owner')
+    search_fields = ('=Site', '^Platform', 'Description', '=Owner', '^Validity')
     date_hierarchy = 'Validity'
 
 
@@ -38,6 +39,7 @@ class HostMachineAdmin(admin.ModelAdmin):
     list_display = ('id', 'Node', 'Host_name')
     list_per_page = 15
     ordering = ('Node', 'Host_name')
+    search_fields = ('Node', 'Host_name')
     list_editable = list(list_display[1:])
 
 
@@ -47,6 +49,7 @@ class DisplayMachineAdmin(admin.ModelAdmin):
     list_per_page = 15
     ordering = ('Node', 'Host_name')
     list_editable = list(list_display[1:])
+    search_fields = ('Node', 'Host_name', 'IP', '^Thalix', 'Owner')
     list_filter = ('Thalix', 'Owner')
 
 
@@ -57,6 +60,7 @@ class XServerAdmin(admin.ModelAdmin):
     ordering = ('Host', 'Port')
     fk_fields = ('Display_machine_id',)
     list_editable = list(list_display[1:])
+    search_fields = ('Host', )
     list_filter = ('Active',)
 
 
@@ -77,6 +81,7 @@ class NodeAdmin(admin.ModelAdmin):
                     'Thalix',
                     'Display', 'Config', 'CSCI',
                     'Restarting']
+    search_fields = ('Name', 'OPS_Name', 'IP', '^Thalix', '^Display', 'Config', 'CSCI')
     list_filter = ('Host', 'Ping_reachable', 'Reachable', 'Controlled', 'Orphan', 'Running', 'Thalix', 'Restarting')
 
 

@@ -6,6 +6,7 @@ from django.db import models
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import datetime
 
 
 class User(AbstractUser):
@@ -25,6 +26,14 @@ class platform(models.Model):
   Validity = models.DateField(null=True, default='')
   Last_modified = models.DateTimeField(auto_now=True)
   Created = models.DateTimeField(auto_now_add=True)
+
+  def used(self):
+    if self.Validity and datetime.datetime.now().date() <= self.Validity:
+      return True
+    else:
+      return False
+
+  used.admin_order_field = "Validity"
 
   class Meta:
     db_table = 'platform'

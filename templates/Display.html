@@ -38,6 +38,12 @@
                 {% endfor %}
             </ul>
             <ul>
+                <div>
+                    <button class="display_mine_all" id="display_mine"  onclick="onclick_display_mine_btn(true)">Display mine</button>
+                    <button class="display_mine_all" id="display_all"  onclick="onclick_display_mine_btn(false)">Display all</button>
+                </div>
+            </ul>
+            <ul>
                 <li style="list-style:none;padding: 5px">
                     <label class="node_info" conflict="Y" style="width: 15px">&nbsp;&nbsp;</label>
                     <label>&nbsp;&nbsp;conflict</label>
@@ -47,13 +53,14 @@
                     <label>&nbsp;&nbsp;active</label>
                 </li>
             </ul>
-            <ul style="border: solid 2px;background: yellow;color: black;">
-                <div>Note:</div><br>
-                <div>1. Double click TTY name to edit active tty!</div><br>
-                <div>2. Double click NODE name to edit node display!</div><br>
-                <div>3. You can set the timeout for restart a node!</div><br>
-                <div>4. Key mapping fixed after restarting!</div>
-            </ul>
+            <div>
+                <!--p>Note:</p-->
+                <div class="note">Note:</div>
+                <div class="note">1. Double click TTY name to edit active tty!</div>
+                <div class="note">2. Double click NODE name to edit node display!</div>
+                <div class="note">3. You can set the timeout for restart a node!</div>
+                <div class="note">4. Key mapping fixed after restarting!</div>
+            </div>
         </div>
 
         <div class="right_content">

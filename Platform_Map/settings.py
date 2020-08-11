@@ -33,6 +33,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    #'suit',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -124,8 +125,10 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+if not DEBUG:
+    STATIC_ROOT = 'static'
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'static' if DEBUG else '/static/'),
 )
 
 # logging
@@ -146,6 +149,6 @@ SESSION_COOKIE_PATH = "/"  # Session的cookie保存的路径（默认）
 SESSION_COOKIE_DOMAIN = None  # Session的cookie保存的域名（默认）
 SESSION_COOKIE_SECURE = False  # 是否Https传输cookie（默认）
 SESSION_COOKIE_HTTPONLY = True  # 是否Session的cookie只支持http传输（默认）
-SESSION_COOKIE_AGE = 24 * 60 * 60  # Session的cookie失效日期（2周）（默认）
+SESSION_COOKIE_AGE = 7 * 24 * 60 * 60  # Session的cookie失效日期（2周）（默认）
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # 是否关闭浏览器使得Session过期（默认）
 SESSION_SAVE_EVERY_REQUEST = False  # 是否每次请求都保存Session，默认修改之后才保存（默认）

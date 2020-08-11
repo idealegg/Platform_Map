@@ -1,6 +1,16 @@
 /**
  * Created by huangd on 2019/9/10.
  */
+
+    function clickHostName(host, user) {
+        var $aa = $('<a>');
+        $aa.html('clickHostName');
+        //$('#btn').parent().append($aa);
+        $aa.attr('href','ssh://'+user+':abc123@'+host+':22');
+        //$aa.attr('target','_blank');
+        $aa.get(0).click();
+    }
+
     $(function () {
         var $gotoTop = $('div.x-goto-top');
         var onScroll = function () {
@@ -47,11 +57,13 @@
         $('.platform-node-name').dblclick(function () {
             var ssh_link=null;
             if (location.pathname === '/display/' ){
-                ssh_link = "SSH://root:abc123@" + $(this).text().split(' ', 1)[0] + ":22";
+                //ssh_link = "SSH://root:abc123@" + $(this).find('.dm-host-name').text() + ":22";
+                clickHostName($(this).find('.dm-host-name').text(), 'root');
             }else {
-                ssh_link = "SSH://system:abc123@" + $(this).text() + ":22";
+                //ssh_link = "SSH://system:abc123@" + $(this).text() + ":22";
+                clickHostName($(this).text(), 'system');
             }
-            window.open(ssh_link, '_blank');
+            //window.open(ssh_link, '_blank');
         });
 
     });
@@ -208,7 +220,7 @@ function expandWikiNode(icons, rec) {
     function submit_platform(site, pf, b) {
         //console.log('submit_platform');
         function date2byte(s){
-            return s > 10 ? s: '0'+s;
+            return s >= 10 ? s: '0'+s;
         }
         var $b1 = $(b),
             $err = $b1.next(),
@@ -269,6 +281,19 @@ function expandWikiNode(icons, rec) {
 
     }
 
+    function check_user(h_usr, c_usr, skip_empty){
+        if(!skip_empty && (h_usr == "")) {
+            return true;
+        }
+       var usrs = h_usr.split(' ');
+        for (var i = 0; i<usrs.length;i++){
+            if (c_usr == usrs[i]){
+                return true;
+            }
+        }
+        return false;
+    }
+
     function dbclick_display_tty(t) {
         //console.log('host:');
         var $pppp = $(t).parents('.column_item');
@@ -282,7 +307,7 @@ function expandWikiNode(icons, rec) {
         var $old = $pppp.find('.tty_text[active="True"]');
         var prefix = 'ChTTY: ';
 
-        if ((host.indexOf('ihp')==-1)&&(h_usr != "")&&(c_usr != h_usr)){
+        if ((host.indexOf('ihp')==-1) &&(!check_user(h_usr, c_usr))){
             $err.text(prefix+'You could not change others display!');
             $err.css('color', '#ff0000');
             return;
@@ -370,7 +395,7 @@ function expandWikiNode(icons, rec) {
         var counter = null;
         var left_s = parseInt($timeout.val());
 
-        if ((host.indexOf('ihp')==-1)&&(h_usr != "")&&(c_usr != h_usr)){
+        if ((host.indexOf('ihp')==-1) &&(!check_user(h_usr, c_usr))){
             $err.text(prefix+'You could not change others display!');
             $err.css('color', '#ff0000');
             return;
@@ -528,7 +553,7 @@ function expandWikiNode(icons, rec) {
         var node_txt = null;
         var prefix = 'ChNode: ';
         
-        if ((host.indexOf('ihp')==-1)&&(h_usr != "")&&(c_usr != h_usr)){
+        if ((host.indexOf('ihp')==-1) &&(!check_user(h_usr, c_usr))){
             $err.text(prefix+'You could not change others display!');
             $err.css('color', '#ff0000');
             return;
@@ -743,14 +768,15 @@ function expandWikiNode(icons, rec) {
                           "<td class='itemvalue'>"+r[i]['Platform']+"</td>"+
                           "<td class='itemvalue'>"+r[i]['Begin']+"</td>"+
                           "<td class='itemvalue'>"+r[i]['End']+"</td>"+
+                          "<td class='itemvalue'>"+r[i]['Used']+"</td>"+
                           "<td class='itemvalue'>"+r[i]['State']+"</td>"+
                           "<td class='itemvalue'>"+r[i]['Counter']+"</td></tr>";
                 if ($('tbody>tr').length) {
                     var max_counter = 0;
                     $('tbody>tr').each(
                         function(){
-                            if($(this).children('td').eq(5).text() > max_counter){
-                                max_counter = parseInt($(this).children('td').eq(5).text());
+                            if($(this).children('td').eq(6).text() > max_counter){
+                                max_counter = parseInt($(this).children('td').eq(6).text());
                             }});
                     insert_at_first = max_counter < r[r.length - 1]['Counter'];
                 }else{
@@ -788,6 +814,60 @@ function expandWikiNode(icons, rec) {
             btn.text("Start Real Time Monitor");
             window.s = null;
         };
+    }
 
+    function onclick_display_mine_btn(hide) {
+        var hosts = $(".column_item");
+        var c_usr = $('#current-login-user').text().trim().toLowerCase();
+        var h_usr = null;
 
+        for (var i = 0; i < hosts.length; i++) {
+            h_usr = $(hosts[i]).find(".dm-usr").text().toLowerCase();
+            if (!check_user(h_usr, c_usr, true)){
+                if (hide){
+                    $(hosts[i]).hide();
+                }else {
+                    $(hosts[i]).show();
+                }
+            }
+        }
+    }
+
+    function onclick_display_mine_btn2(hide) {
+        var pfs = $(".content_item");
+        var c_usr = $('#current-login-user').text().trim().toLowerCase();
+        var h_usr = null;
+        var h_site = null;
+        var h_pf = null;
+        var menu = null;
+
+        if(hide){
+            expandWikiNode($('#x-wiki-index>div>i'), true);
+            $(pfs[pfs.length-1]).hide();
+        }
+        else{
+            collapseWikiNode($('#x-wiki-index>div>i'), true);
+            $(pfs[pfs.length-1]).show();
+        }
+
+        for (var i = 0; i < pfs.length-1; i++) {
+            h_usr = $(pfs[i]).find(".owner").val().toLowerCase();
+            h_site = $(pfs[i]).find(".sitename").text();
+            h_pf = $(pfs[i]).find(".platformname").text();
+            menu = $('#menu-'+h_site+'-'+h_pf);
+            //console.log('h_usr: '+h_usr);
+            //console.log('c_usr: '+c_usr);
+            //console.log('h_site: '+h_site);
+            //console.log('h_pf: '+h_pf);
+
+            if (!check_user(h_usr, c_usr, true)){
+                if (hide){
+                    $(pfs[i]).hide();
+                    menu.hide();
+                }else {
+                    $(pfs[i]).show();
+                    //menu.show();
+                }
+            }
+        }
     }
