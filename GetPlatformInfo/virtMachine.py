@@ -229,143 +229,87 @@ exit 0
     except:
       return False
 
-  @myLogging.log('VirMachine')
-  def stop_node(self, time_out=120, check_interval=3, first_sleep=5):
-    self.init_ssh()
-    cmd='''
-export HOME=/usr/system
-. $HOME/.profile > /dev/null 2>&1
-run_tools_path=$HOME/INTEG/run_tools/$RUN_TOOLS_VERS/bin
+  def check_npm(self, proc='npm_main'):
+    self.execute_cmd('/sbin/pidof %s' % proc)
+    return self.stdout.read().strip()
 
-${run_tools_path}/stop node
+  def check_ipcs(self):
+    self.execute_cmd('ipcs')
+    return self.stdout.read().count('system') > 10
 
-sleep %d
+  def is_online(self):
+    self.execute_cmd('ksh -lc "lsc show system|grep %s"'% self.get_hostname())
+    return self.stdout.read().count('BS_NODEONLINE')
 
-wait_seconds=$((%d - %d ))
-stopped=0
-hostname=`hostname`
-
-while [ ${wait_seconds} -gt 0 ]
-do
-  ps -o pid,comm -A | grep npm_main > /dev/null 2>&1
-  if [ $? -ne 0 ]
-  then
-	stopped=1
-    break
-  else
-    wait_seconds=$((wait_seconds-%d))
-    sleep %d
-  fi
-done
-
-if [ ${stopped} -eq 0 ]
-then
- echo "Node is not real exit!"
- exit 1
-fi
-
-echo "Stop node successfully!"
-exit 0
-''' % (first_sleep, time_out, first_sleep, check_interval, check_interval)
-    self.execute_cmd(cmd, timeout=time_out)
-    tmp_out = self.stdout.read()
-    self.close_ssh()
-    myLogging.logger.info(tmp_out)
-    return tmp_out.count('Stop node successfully') != 0
+  def check_npm_started(self):
+    self.execute_cmd('/bin/ls -1 /tmp|/bin/grep "^node_starting$"')
+    return not self.stdout.read().strip()
 
   @myLogging.log('VirMachine')
-  def start_node(self, time_out=120, check_interval=5, first_sleep=20):
+  def stop_node(self, time_out=120, check_interval=2, first_sleep=30):
     self.init_ssh()
-    self.execute_cmd('ksh -lc "start node -silent"')
-    time.sleep(10.0)
-    cmd = '''
-  export HOME=/usr/system
-  . $HOME/.profile > /dev/null 2>&1
-  run_tools_path=$HOME/INTEG/run_tools/$RUN_TOOLS_VERS/bin
-  hostname=`hostname`
-
-  # > /usr/system/huangd_touch.log
-
-  # ${run_tools_path}/start node -silent
-
-  sleep %d
-  wait_seconds=$((%d - %d))
-  lscm_started=0
-  check_num=10
-  started=0
-  pid=''
-
- #echo "start while ps lscm" > /usr/system/huangd_touch.log
-
-  while [ ${wait_seconds} -gt 0 ]
-  do
-    #echo "ps lscm" >> /usr/system/huangd_touch.log
-    lscm_pid=`ps -o pid,comm -A | grep lscm`
-    if [ -n "${lscm_pid}" ]
-    then
-      if [ ${check_num} -gt 0 ]
-      then
-        if [ -n "${pid}" -a "${pid}" != "${lscm_pid}" ]
-        then
-          echo "lscm is abnormal!"
-          exit 1
-        fi
-        pid="${lscm_pid}"
-        check_num=$((check_num - 1))
-        wait_seconds=$((wait_seconds-1))
-        sleep 1
-        continue
-      fi
-  	  lscm_started=1
-      break
-    else
-      wait_seconds=$((wait_seconds-%d))
-      sleep %d
-    fi
-    #echo "${wait_seconds}  ${lscm_pid}" >> /usr/system/huangd_touch.log
-  done
-
-  #echo "end while ps lscm" >> /usr/system/huangd_touch.log
-
-  if [ ${lscm_started} -eq 1 ]
-  then
-    #echo "start show system " >> /usr/system/huangd_touch.log
-    #echo "${wait_seconds}" >> /usr/system/huangd_touch.log
-    while [ ${wait_seconds} -gt 0 ]
-    do
-      #echo "show system " >> /usr/system/huangd_touch.log
-      ${run_tools_path}/lsc show system|grep $hostname|grep BS_NODEONLINE  > /dev/null 2>&1
-      if [ $? -eq 0 ]
-      then
-        started=1
-        break
-      else
-        wait_seconds=$((wait_seconds-%d))
-        sleep %d
-      fi
-    done
-  fi
-
-  #echo "end while show system " >> /usr/system/huangd_touch.log
-
-  if [ ${started} -eq 0 ]
-  then
-   #echo "Node is not real started!" >> /usr/system/huangd_touch.log
-   echo "Node is not real started!"
-   exit 2
-  fi
-
-  echo "Start node successfully!"
-  #echo "Start node successfully!" >> /usr/system/huangd_touch.log
-  exit 0
-  ''' % (first_sleep, time_out-10, first_sleep,
-         check_interval, check_interval, check_interval, check_interval)
-    myLogging.logger.info("cmd: %s" % cmd)
-    self.execute_cmd(cmd, timeout=time_out)
-    tmp_out = self.stdout.read()
+    start_t = time.time()
+    result = True
+    if self.check_npm():
+      self.execute_cmd('ksh -lc "stop node"')
+      while self.check_npm() and (time.time() - start_t < first_sleep):
+        time.sleep(check_interval)
+      if self.check_npm():
+        self.execute_cmd('pkill -9  npm_main')
+    if self.check_ipcs():
+      vm2 = VirMachine(self.attr['Name'])
+      vm2.set_user('system')
+      vm2.init_ssh()
+      vm2.execute_cmd('ksh -lc "start node"')
+      while not self.check_npm() and (time.time() - start_t < time_out):
+        time.sleep(check_interval)
+      vm2.close_ssh()
+      if not self.check_npm():
+        self.close_ssh()
+        myLogging.logger.info("Ipcs could not be cleared1!")
+        return False
+      while not self.check_npm_started() and (time.time() - start_t < time_out):
+        time.sleep(check_interval)
+      if not self.check_npm_started():
+        self.close_ssh()
+        myLogging.logger.info("Ipcs could not be cleared2!")
+        return False
+      self.execute_cmd('ksh -lc "stop node"')
+      while self.check_ipcs() and (time.time() - start_t < time_out):
+        time.sleep(check_interval)
+      result = not self.check_ipcs()
     self.close_ssh()
-    myLogging.logger.info(tmp_out)
-    return tmp_out.count('Start node successfully') != 0
+    myLogging.logger.info("Result: %s"%result)
+    return result
+
+  @myLogging.log('VirMachine')
+  def start_node(self, time_out=120, check_interval=2, first_sleep=30):
+    self.init_ssh()
+    start_t = time.time()
+    vm2 = VirMachine(self.attr['Name'])
+    vm2.set_user('system')
+    vm2.init_ssh()
+    vm2.execute_cmd('ksh -lc "start node -silent"')
+    while not self.check_npm() and (time.time() - start_t < first_sleep * 2):
+      time.sleep(check_interval)
+    vm2.close_ssh()
+    if not self.check_npm():
+      self.close_ssh()
+      myLogging.logger.info("Npm could not start!")
+      return False
+    step_t = time.time()
+    while not self.check_npm('LSCM') and (time.time() - step_t < time_out):
+      time.sleep(check_interval)
+    if not self.check_npm('LSCM'):
+      self.close_ssh()
+      myLogging.logger.info("LSCM could not start!")
+      return False
+    while not self.is_online() and (time.time() - start_t < time_out):
+      time.sleep(check_interval*2)
+    result = self.is_online()
+    self.close_ssh()
+    myLogging.logger.info("Result: %s" % result)
+    return result
 
   @myLogging.log('VirMachine')
   def exec_comms(self, comms, pm=None, redirect_stderr=True, echo=False):

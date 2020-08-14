@@ -92,3 +92,4 @@
 2020-08-14
 1. Add resolution info for display page.
 2. Use xrandr to test the validaty of tty.
+3. Re-stucture the logic to restart a node.
