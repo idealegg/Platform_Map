@@ -134,23 +134,34 @@
     }
 
     .dm-os {
-        margin:2px;
-        padding: 2px;
+        margin:1px;
+        padding: 1px;
         float: left;
         color: #7be254;
-        font-size: 18px;
+        font-size: 12px;
         font-weight: bolder;
         /*text-decoration : underline;*/
         border:solid 1px #66512c;
         border-radius: 4px;
     }
 
+    .dm-resolution {
+        margin:1px;
+        padding: 1px;
+        float: left;
+        color: #1538e2;
+        font-size: 12px;
+        /*text-decoration : underline;*/
+        border:solid 1px #661c21;
+        border-radius: 4px;
+    }
+
     .dm-usr {
-        margin:2px;
-        padding: 2px;
+        margin:1px;
+        padding: 1px;
         float: left;
         color: #c58ae2;
-        font-size: 18px;
+        font-size: 12px;
         /*font-style: italic;*/
     }
 
@@ -181,8 +192,16 @@
         color: yellow;
     }
 
+    .tty_text[valid="False"] {
+        background: #ffff00;
+    }
+
     .tty_text[active="True"] {
         background: #00ff00;
+    }
+
+    .tty_text[active="True"][valid="False"] {
+        background: #7fff00;
     }
 
     .tty_text {

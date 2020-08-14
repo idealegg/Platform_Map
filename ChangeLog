@@ -89,3 +89,6 @@
 3. Modify the update frequency to get user list from tai2.
 4. Add passwd change function.
 5. etc.
+2020-08-14
+1. Add resolution info for display page.
+2. Use xrandr to test the validaty of tty.

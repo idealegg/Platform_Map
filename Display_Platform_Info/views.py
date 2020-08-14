@@ -361,6 +361,7 @@ def display(request):
                             'Host_name': d.Host_name,
                             'n_t': datetime2str(d.Last_modified),
                             'os': d.Thalix,
+                            'res': d.Resolution,
                             'usr': d.Owner,
                            }, 'xs': a_dm})
     room_infos.append({'room': room, 'ds': a_room})
