@@ -216,7 +216,8 @@ exit 0
           self.execute_cmd(
             'ksh -lc "cp %s %s"' % ("/".join(['/usr/system', template]), "/".join([source_dir, template])))
         else:
-          self.tx_file("\\".join([Platform_Map.settings.BASE_DIR, 'static', 'map_g', template]), os.path.join('/usr/system', template))
+          #self.tx_file("\\".join([Platform_Map.settings.BASE_DIR, 'static', 'map_g', template]), os.path.join('/usr/system', template))
+          self.tx_file(os.path.join(Platform_Map.settings.BASE_DIR, 'static', 'map_g', template), os.path.join('/usr/system', template))
           self.execute_cmd(
           'ksh -lc "cp %s %s"' % (os.path.join('/usr/system', template), os.path.join(source_dir, template)))
       for f in targets:

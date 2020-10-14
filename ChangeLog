@@ -93,3 +93,6 @@
 1. Add resolution info for display page.
 2. Use xrandr to test the validaty of tty.
 3. Re-stucture the logic to restart a node.
+2020-10-14
+1. Fix a bug that exception at updating vm state would cause collect failure.
+2. Fix bug that kbd mapping is not copied.
