@@ -63,6 +63,7 @@ class display_machine(models.Model):
   IP = models.CharField(max_length=100, default='')
   Host_name = models.CharField(max_length=20, default='')
   Thalix = models.CharField(max_length=10, default='11.0')
+  X_ver = models.CharField(max_length=10, null=True, default='')
   Resolution = models.CharField(max_length=10, default='')
   Owner = models.CharField(max_length=150, null=True, default='')
   Last_modified = models.DateTimeField(auto_now=True)

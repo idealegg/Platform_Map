@@ -192,7 +192,8 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
         tmp = re.split('\s+', line)
         if len(tmp) > 1:
           if vm_ops_name in tmp:
-            csci.append(re.sub("\d+", '', tmp[0]))  # 删除数字
+            #csci.append(re.sub("\d+", '', tmp[0]))  # 删除数字
+            csci.append(re.sub("001$", '', tmp[0]))  # 删除001
     ret1 = {'CSCI': " ".join(csci)}
   elif cmd.startswith('ping -c'):
     ret1 = {'Ping_reachable': 'N'}

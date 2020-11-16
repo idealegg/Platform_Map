@@ -526,10 +526,10 @@ def submit_restart_mmi(request):
       vm.save_restarting(False)
       ret = 'Successful'
     except socket.gaierror:
-      myLogging.logger.exception('getaddrinfo failed in submit display!')
+      myLogging.logger.exception('getaddrinfo failed in submit restart mmi!')
       ret = 'Getaddrinfo failed'
     except Exception, e:
-      myLogging.logger.exception('Exception in submit display!')
+      myLogging.logger.exception('Exception in submit restart mmi!')
       ret = "%s: %s" % (e.__class__.__name__, e.message)
     finally:
       if vm and vm.db_inst.Restarting:
@@ -590,7 +590,7 @@ def submit_tty(request):
         ret = 'Successful'
         n_t = datetime2str(dm.Last_modified)
     except socket.gaierror:
-      myLogging.logger.exception('getaddrinfo failed in submit display!')
+      myLogging.logger.exception('getaddrinfo failed in submit tty!')
       ret = 'Getaddrinfo failed'
     except Exception, e:
       myLogging.logger.exception('Exception in submit tty!')

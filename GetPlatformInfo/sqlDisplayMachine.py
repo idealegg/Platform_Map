@@ -14,6 +14,7 @@ class SQLDisplayMachine(SQLOperator):
                  'Host_name': '',
                  'Thalix': '11.0',
                  'Resolution': '',
+                 'X_ver': '',
                  }
     self.set_filter_function(display_machine.objects.filter)
 
@@ -22,7 +23,7 @@ class SQLDisplayMachine(SQLOperator):
     if not is_init:
       self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']}, kept={'Owner'})
     else:
-      self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']}, kept={'IP', 'Host_name', 'Thalix', 'Owner', 'Resolution'})
+      self.insert_or_update(self.db_inst, filters={'Node': self.attr['Node']}, kept={'IP', 'Host_name', 'Thalix', 'Owner', 'Resolution', 'X_ver'})
 
   def set_ip(self, ip):
     self.attr['IP'] = ip
@@ -35,6 +36,9 @@ class SQLDisplayMachine(SQLOperator):
 
   def set_resolution(self, resolution):
     self.attr['Resolution'] = resolution
+
+  def set_x_ver(self, ver):
+    self.attr['X_ver'] = ver
 
   @classmethod
   def get_inst_by_ip(cls, ip):

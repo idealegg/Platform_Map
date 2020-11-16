@@ -124,6 +124,13 @@ class RunCollect:
     self.vm.set_host(name)
     try:
       self.vm.init_ssh()
+      # else:
+    #    raise
+    # for cmd in self.conf.get_cmd_list():
+    #   self.vm.execute_cmd(cmd)
+    #   self.vm.attr.update(parseUtil.parse_cmd(cmd, self.vm.stdout.read().split("\n"), self.vm.get_ops_name()))
+      self.vm.execute_cmd('ksh -lc "%s"' % ';'.join(map(lambda x: "echo 'system@$ " + x + "';" + x, self.conf.get_cmd_list())))
+      parseUtil.parse_output(self.vm.stdout, self.vm)
     except Exception, e:
       myLogging.logger.exception("Exception in init ssh to node %s" % self.vm.attr['Name'])
       # if e.message.find('timed out') != -1:
@@ -135,13 +142,6 @@ class RunCollect:
                              'Platform': self.vm.get_platform(),
                              })
       return
-      # else:
-    #    raise
-    # for cmd in self.conf.get_cmd_list():
-    #   self.vm.execute_cmd(cmd)
-    #   self.vm.attr.update(parseUtil.parse_cmd(cmd, self.vm.stdout.read().split("\n"), self.vm.get_ops_name()))
-    self.vm.execute_cmd('ksh -lc "%s"' % ';'.join(map(lambda x: "echo 'system@$ " + x + "';" + x, self.conf.get_cmd_list())))
-    parseUtil.parse_output(self.vm.stdout, self.vm)
     self.vm.attr.update({'Host': host})
     self.vm.attr.update({'Ping_reachable': "Y",
                          'Reachable': 'Y',

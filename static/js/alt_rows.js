@@ -174,6 +174,13 @@ function expandWikiNode(icons, rec) {
       form.submit();
     }
 
+    function set_local_change(t) {
+        var p = $(t).parent().parent();
+        var err = p.find('#error_label');
+        err.text('Local changed! Please submit or refresh!');
+        err.css('color', '#e28327');
+    }
+
     function checkValidity(t) {
           //console.log(t);
           var div_date = $(t).parent();
@@ -816,38 +823,48 @@ function expandWikiNode(icons, rec) {
         };
     }
 
-    function onclick_display_mine_btn(hide) {
+    function onclick_display_mine_btn() {
         var hosts = $(".column_item");
         var c_usr = $('#current-login-user').text().trim().toLowerCase();
+        var button = $('.display_mine_all');
         var h_usr = null;
+        var hide = button.text() === 'Display mine';
+
+        console.log(button.text());
 
         for (var i = 0; i < hosts.length; i++) {
             h_usr = $(hosts[i]).find(".dm-usr").text().toLowerCase();
             if (!check_user(h_usr, c_usr, true)){
                 if (hide){
                     $(hosts[i]).hide();
+                    button.text('Display all');
                 }else {
                     $(hosts[i]).show();
+                    button.text('Display mine');
                 }
             }
         }
     }
 
-    function onclick_display_mine_btn2(hide) {
+    function onclick_display_mine_btn2() {
         var pfs = $(".content_item");
         var c_usr = $('#current-login-user').text().trim().toLowerCase();
+        var button = $('.display_mine_all');
         var h_usr = null;
         var h_site = null;
         var h_pf = null;
         var menu = null;
+        var hide = button.text() === 'Display mine';
 
         if(hide){
             expandWikiNode($('#x-wiki-index>div>i'), true);
             $(pfs[pfs.length-1]).hide();
+            button.text('Display all');
         }
         else{
             collapseWikiNode($('#x-wiki-index>div>i'), true);
             $(pfs[pfs.length-1]).show();
+            button.text('Display mine');
         }
 
         for (var i = 0; i < pfs.length-1; i++) {
@@ -855,12 +872,13 @@ function expandWikiNode(icons, rec) {
             h_site = $(pfs[i]).find(".sitename").text();
             h_pf = $(pfs[i]).find(".platformname").text();
             menu = $('#menu-'+h_site+'-'+h_pf);
+            val_flag = $('#val-flag-'+h_site+'-'+h_pf);
             //console.log('h_usr: '+h_usr);
             //console.log('c_usr: '+c_usr);
             //console.log('h_site: '+h_site);
             //console.log('h_pf: '+h_pf);
 
-            if (!check_user(h_usr, c_usr, true)){
+            if (!check_user(h_usr, c_usr, true) || val_flag.hasClass('uk-icon-close')){
                 if (hide){
                     $(pfs[i]).hide();
                     menu.hide();

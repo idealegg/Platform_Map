@@ -25,6 +25,7 @@ class XServer(Machine, SQLOperator):
     self.dm_db_inst = None
     self.active_tty = -1
     self.resolution = 'invalid'
+    self.x_ver=''
     self.attr = {'Host': login,
                 # 'Display_machine': None,
                  'Port': 0,
@@ -48,6 +49,7 @@ class XServer(Machine, SQLOperator):
     sql_dm.set_ip(self.get_ip())
     sql_dm.set_hostname(self.get_hostname())
     sql_dm.set_thalix(self.get_thalix())
+    sql_dm.set_x_ver(self.get_x_ver(timeout))
     sql_dm.save()
     self.dm_db_inst = sql_dm.db_inst
     self.execute_cmd('fgconsole')
@@ -96,6 +98,19 @@ class XServer(Machine, SQLOperator):
       return dm
     return None
 
+  def get_x_ver(self, timeout):
+    #Build ID: xorg-x11-server 1.13.0-23.1.el6_5
+    if self.x_ver:
+      return self.x_ver
+    self.execute_cmd('/usr/bin/Xorg -version', timeout=timeout)
+    t_buf = self.stdout.read().split('\n')
+    for line in t_buf:
+      if line.count('Build ID:'):
+        self.x_ver = line[len('Build ID: xorg-x11-server '):]
+        self.x_ver = self.x_ver[:self.x_ver.find('-')]
+        break
+    return self.x_ver
+
   def check_x_valid(self, timeout, ix):
     valid = False
     if os_pf.system() == "Windows":
@@ -110,7 +125,8 @@ class XServer(Machine, SQLOperator):
     t_2 = filter(lambda x: x.count('*'), t_buf)
     if t_2:
       t_buf = t_2[0].split()
-      if self.get_thalix().count('11'):
+      #if self.get_thalix().count('11'):
+      if self.get_x_ver(timeout) < '1.10.0':
         if len(t_buf) > 3:
           self.resolution = "".join(t_buf[1:4])
           valid = True

@@ -209,7 +209,7 @@ exit 0
       else:
         template=t12
       self.execute_cmd('ksh -lc "ls %s"' % os.path.join(source_dir, template))
-      if self.check_stderr():
+      if self.check_stderr() or not Platform_Map.settings.USE_LOCAL_MAP_G:
         if os_pf.system() == "Windows":
           self.tx_file(os.path.join(Platform_Map.settings.BASE_DIR, 'static', 'map_g', template),
                      "/".join(['/usr/system', template]))

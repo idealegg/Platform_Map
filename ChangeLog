@@ -96,3 +96,10 @@
 2020-10-14
 1. Fix a bug that exception at updating vm state would cause collect failure.
 2. Fix bug that kbd mapping is not copied.
+2020-11-16
+1. Add Xorg version info. Use X-ver to check availability of tty.
+2. Fix log info in restart/tty change.
+3. Keep csci num if not 001.
+4. Fix problem of exception when parse_output(sock.recv) time out.
+5. Add prompt info if local change in Platform page.
+6. Merge 'display all' and 'display mine' to one button.

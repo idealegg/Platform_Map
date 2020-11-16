@@ -56,8 +56,7 @@
             </ul>
             <div>
                 <div>
-                    <button class="display_mine_all" id="display_mine"  onclick="onclick_display_mine_btn2(true)">Display mine</button>
-                    <button class="display_mine_all" id="display_all"  onclick="onclick_display_mine_btn2(false)">Display all</button>
+                    <button class="display_mine_all" id="display_mine"  onclick="onclick_display_mine_btn2()">Display mine</button>
                 </div>
             </div>
         </div>
@@ -81,17 +80,17 @@
                 </div>
                 <div class="info_line">
                     <label class="pf_label">Description: </label>
-                    <input type="text" class='description' value="{{ pf.desc }}" />
+                    <input type="text" class='description' value="{{ pf.desc }}" onchange="set_local_change(this)" />
                 </div>
                 <div class="info_line">
                     <label class="pf_label">Owner: </label>
-                    <input type="text" class='owner' value="{{ pf.owner }}" />
+                    <input type="text" class='owner' value="{{ pf.owner }}" onchange="set_local_change(this)" />
                     </div>
                 <!--<div ><label>Validity: </label><input type="date" class="validity" value="{{ selected.Validity }}"/></div> -->
                 <div class="info_line validity">
                     <label class="pf_label">Validity: </label>
                     <!--<input type="date" value="2019-01-01" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd'});javascript:{$('#eta').trigger('change')}"/> -->
-                    <input id="select-date-{{ site.site_name }}-{{ pf.pf_name }}" class="Wdate" value="{{ pf.valid|date:"Y-m-d" }}" onfocus="onClickSelectDate(this)" />
+                    <input id="select-date-{{ site.site_name }}-{{ pf.pf_name }}" class="Wdate" value="{{ pf.valid|date:"Y-m-d" }}" onfocus="onClickSelectDate(this)" onchange="set_local_change(this)" />
                     <span id="val-flag-{{ site.site_name }}-{{ pf.pf_name }}"></span>
                 </div>
                 <div class="info_line">
