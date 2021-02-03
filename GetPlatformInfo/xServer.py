@@ -8,7 +8,7 @@ if __name__ == "__main__":
   django.setup()
 from GetPlatformInfo.machine import Machine
 from GetPlatformInfo.sqlOperator import SQLOperator
-from GetPlatformInfo.sqlDisplayMachine import SQLDisplayMachine
+from GetPlatformInfo.displayMachine import DisplayMachine
 from Display_Platform_Info.models import X_server, display_machine
 import myLogging
 import platform as os_pf
@@ -26,12 +26,13 @@ class XServer(Machine, SQLOperator):
     self.active_tty = -1
     self.resolution = 'invalid'
     self.x_ver=''
-    self.attr = {'Host': login,
+    self.attr = {'Host': self.name,
                 # 'Display_machine': None,
                  'Port': 0,
                  'Tty': 0,
                  'Valid': True,
                  'Active': False,
+                 'Login': login,
                  }
 
   @myLogging.log('XServer')
@@ -41,11 +42,11 @@ class XServer(Machine, SQLOperator):
       self.init_ssh()
     except Exception, e:
       if e.message.find('timed out') != -1:
-        myLogging.logger.warning('Display machine [%s] connect timeout! Skip it!' % self.host)
+        myLogging.logger.warning('Display machine [%s] connect timeout! Skip it!' % self.name)
       else:
-        myLogging.logger.exception('Exception when init ssh to X node %s!' % self.attr['Host'])
+        myLogging.logger.exception('Exception when init ssh to X node %s!' % self.name)
       return
-    sql_dm = SQLDisplayMachine(self.login)
+    sql_dm = DisplayMachine(self.login)
     sql_dm.set_ip(self.get_ip())
     sql_dm.set_hostname(self.get_hostname())
     sql_dm.set_thalix(self.get_thalix())
@@ -93,7 +94,7 @@ class XServer(Machine, SQLOperator):
     dm_set = display_machine.objects.filter(Host_name=self.get_hostname())
     if dm_set.count():
       return dm_set[0]
-    dm = SQLDisplayMachine.get_inst_by_ip(self.get_ip())
+    dm = DisplayMachine.get_inst_by_ip(self.get_ip())
     if dm:
       return dm
     return None
@@ -111,29 +112,34 @@ class XServer(Machine, SQLOperator):
         break
     return self.x_ver
 
+  @myLogging.log('XServer')
   def check_x_valid(self, timeout, ix):
     valid = False
-    if os_pf.system() == "Windows":
-      self.execute_cmd('xrandr -display %s' % (ix,), redirect_stderr=False, timeout=timeout)
-      try:
-        t_buf = self.stdout.read().split('\n')
-      except socket.timeout:
-        t_buf = ''
-    else:
-      fp = os.popen("timeout -s 9 %d xrandr -display %s%s" % (int(timeout), self.get_hostname(), ix))
-      t_buf = fp.read().split('\n')
-    t_2 = filter(lambda x: x.count('*'), t_buf)
-    if t_2:
-      t_buf = t_2[0].split()
-      #if self.get_thalix().count('11'):
-      if self.get_x_ver(timeout) < '1.10.0':
-        if len(t_buf) > 3:
-          self.resolution = "".join(t_buf[1:4])
-          valid = True
+    try:
+      if os_pf.system() == "Windows":
+        self.execute_cmd('xrandr -display %s' % (ix,), redirect_stderr=False, timeout=timeout)
+        try:
+          t_buf = self.stdout.read().split('\n')
+        except socket.timeout:
+          t_buf = ''
       else:
-        if t_buf:
-          self.resolution = t_buf[0]
-          valid = True
+        fp = os.popen("timeout -s 9 %d xrandr -display %s%s" % (int(timeout), self.get_hostname(), ix))
+        t_buf = fp.read().split('\n')
+      t_2 = filter(lambda x: x.count('*'), t_buf)
+      if t_2:
+        t_buf = t_2[0].split()
+        #if self.get_thalix().count('11'):
+        if self.get_x_ver(timeout) < '1.10.0':
+          if len(t_buf) > 3:
+            self.resolution = "".join(t_buf[1:4])
+            valid = True
+        else:
+          if t_buf:
+            self.resolution = t_buf[0]
+            valid = True
+    except Exception, e:
+      myLogging.logger.exception("Exception in check_x_valid.")
+      valid = False
     return valid
 
 

@@ -9,7 +9,7 @@ import xServer
 import parseUtil
 import confUtil
 import myLogging
-import sqlDisplayMachine, sqlPlatform, sqlPlatformNodeList, sqlRunState, sqlOperator, machine
+import displayMachine, sqlPlatform, sqlPlatformNodeList, sqlRunState, sqlOperator, machine
 from Display_Platform_Info.models import platform, platform_node_list, host_machine, display_machine, X_server, node, run_state
 import Platform_Map.settings
 import os
@@ -48,14 +48,6 @@ class RunCollect:
       else:
         shutil.copyfile(self.db_path, '.'.join([self.db_path, 'last_ver']))
 
-    # Truncate tables
-    #platform.objects.all().delete()
-    #platform_node_list.objects.all().delete()
-    #host_machine.objects.all().delete()
-    #display_machine.objects.all().delete()
-    #X_server.objects.all().delete()
-    #node.objects.all().delete()
-
     # Init table data(platform and platform_node_list)
     platform_ids = set()
     platform_node_map_ids = set()
@@ -86,8 +78,9 @@ class RunCollect:
 
     # Init table data(host_machine)
     host_machine_ids = set()
+    pm_passwd = self.conf.get_physical_host_passwd()
     for hm in self.conf.get_physical_host_list():
-      ph = physicalMachine.HostMachine(hm)
+      ph = physicalMachine.HostMachine(':'.join([hm, pm_passwd]) if pm_passwd else hm)
       ph.save()
       host_machine_ids.add(ph.get_id())
     # Delete the odd data
@@ -97,8 +90,9 @@ class RunCollect:
 
     # Init table data(display_machine)
     display_machine_ids = set()
+    dm_passwd = self.conf.get_display_host_passwd()
     for dm in self.conf.get_display_host_list():
-      sql_dm = sqlDisplayMachine.SQLDisplayMachine(dm)
+      sql_dm = displayMachine.DisplayMachine(':'.join([dm, dm_passwd]) if dm_passwd else dm)
       sql_dm.save(is_init=True)
       display_machine_ids.add(sql_dm.get_id())
     # Delete the odd data
@@ -111,56 +105,49 @@ class RunCollect:
     myLogging.logger.info('To process a uncontrolled node:')
     myLogging.logger.error("Start vm [%s] failed!" % self.vm.vm_state)
     self.vm.attr.update({'Host': self.pm.get_hostname()})
-    self.vm.attr.update({'Host_Machine': self.vm.get_host_machine(),
+    self.vm.attr.update({'Host_machine': self.vm.get_host_machine(),
                          'Platform': self.vm.get_platform(),
                          })
     self.vm.save()
     self.node_ids.add(self.vm.get_id())
 
   @myLogging.log('RunCollect')
-  def process_direct_ssh_node(self, host, name):
+  def process_direct_ssh_node(self, host=""):
     myLogging.logger.info('To process a direct ssh node:')
-    self.vm.set_user('system')
-    self.vm.set_host(name)
     try:
-      self.vm.init_ssh()
-      # else:
-    #    raise
-    # for cmd in self.conf.get_cmd_list():
-    #   self.vm.execute_cmd(cmd)
-    #   self.vm.attr.update(parseUtil.parse_cmd(cmd, self.vm.stdout.read().split("\n"), self.vm.get_ops_name()))
+      self.vm.init_ssh(user='system')
       self.vm.execute_cmd('ksh -lc "%s"' % ';'.join(map(lambda x: "echo 'system@$ " + x + "';" + x, self.conf.get_cmd_list())))
       parseUtil.parse_output(self.vm.stdout, self.vm)
     except Exception, e:
-      myLogging.logger.exception("Exception in init ssh to node %s" % self.vm.attr['Name'])
+      myLogging.logger.exception("Exception in init ssh to node %s" % self.vm.name)
       # if e.message.find('timed out') != -1:
       #   myLogging.logger.warning('Node [%s] ssh connect timeout!' % self.vm.attr['Name'])
       self.vm.attr.update({'Host': host})
       self.vm.attr.update({'Ping_reachable': "Y",
                              'Reachable': 'N',
-                             'Host_Machine': self.vm.get_host_machine(),
+                             'Host_machine': self.vm.get_host_machine(),
                              'Platform': self.vm.get_platform(),
                              })
       return
     self.vm.attr.update({'Host': host})
     self.vm.attr.update({'Ping_reachable': "Y",
                          'Reachable': 'Y',
-                         'Host_Machine': self.vm.get_host_machine(),
+                         'Host_machine': self.vm.get_host_machine(),
                          'X_server': self.vm.get_x_server(),
                          'Platform': self.vm.get_platform(),
                          })
 
-  def process_pm_only_node(self, name):
+  def process_pm_only_node(self):
     myLogging.logger.info('To process a pm only node:')
     #self.vm.attr.update({'Ping_reachable': "N"}) # default value.
-    use_ssh = not self.conf.try_virsh_console() or self.pm.is_ping_reachable(name)
+    use_ssh = not self.conf.try_virsh_console() or self.pm.is_ping_reachable(self.vm.host)
     script = parseUtil.gen_script(map(lambda x: x.strip(), self.conf.get_cmd_list()),
-                                  name if use_ssh else self.vm.vm_state['Name'],
-                                  use_ssh)
+                                  self.vm.host if use_ssh else self.vm.vm_name,
+                                  use_ssh, passwd=self.vm.passwd)
     self.pm.execute_script(script)
     parseUtil.parse_output(self.pm.stdout, self.vm)
     self.vm.attr.update({'Host': self.pm.get_hostname()})
-    self.vm.attr.update({'Host_Machine': self.vm.get_host_machine(),
+    self.vm.attr.update({'Host_machine': self.vm.get_host_machine(),
                          'X_server': self.vm.get_x_server(),
                          'Platform': self.vm.get_platform(),
                          })
@@ -211,11 +198,13 @@ class RunCollect:
       myLogging.logger.info('completed_pfs: %s' % map(lambda x: ' '.join([x.Site, x.Platform]), completed_pfs))
     myLogging.logger.info("Current run state counter: %d" % sqlRunState.SQLRunState.current_counter)
     # Check vms in physical host machines.
-    for host in self.conf.get_physical_host_list():
-      pm = physicalMachine.HostMachine(host)
+    pm_passwd = self.conf.get_physical_host_passwd()
+    for host_login in self.conf.get_physical_host_list():
+      host_login = ':'.join([host_login, pm_passwd]) if pm_passwd else host_login
+      pm = physicalMachine.HostMachine(host_login)
       pm.init_ssh()
       pm.update_hostname()
-      self.pm_login_map[pm.get_hostname()] = host
+      self.pm_login_map[pm.get_hostname()] = host_login
       if pm.get_vm_ist():
         myLogging.logger.info("Vm list: %s" % pm.VmList)
         self.vm_list.extend(pm.VmList)
@@ -233,7 +222,9 @@ class RunCollect:
         self.current_rs = sqlRunState.SQLRunState(begin=None, pf=current_pf)
         self.current_rs.save()
         self.send_req2web()
+        pf_passwd = self.conf.get_site_platform_passwd(site, pf)
         for c_node in self.conf.get_site_platform_nodelist(site, pf):
+          c_node = ':'.join([c_node, pf_passwd]) if pf_passwd else c_node
           self.vm = None
           self.pm = None
           v_nodes = filter(lambda x: parseUtil.node_equal(x['Name'], c_node), self.vm_list)
@@ -246,8 +237,7 @@ class RunCollect:
             self.pm = physicalMachine.HostMachine(self.pm_login_map[vm_state['Host']])
             self.pm.init_ssh()
             vm_state['Running'] = self.pm.update_vm_status(vm_state)
-            self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'])
-            self.vm.set_conf_name(c_node)
+            self.vm = virtMachine.VirMachine(c_node, vm_state['Running'], vm_state['Id_in_host'], vm_name=vm_state['Name'])
             if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():
               myLogging.logger.info("Starting vm %s" % vm_state['Name'])
               self.vm.attr.update(self.pm.start_vm(self.vm))
@@ -261,15 +251,15 @@ class RunCollect:
               time.sleep(self.conf.get_para_float('wait_vm_start_sleep_time'))
             # Now vm is running, begin to check its info
             myLogging.logger.info("To check conf vm node: %s" % vm_state)
-            ret = parseUtil.ping_a_node(c_node)
+            ret = parseUtil.ping_a_node(self.vm.host)
             myLogging.logger.info('Ping result: %d' % ret)
             if not ret:
               # The node could be reached directly, use ssh.
               # if c_node not equal vm_state['Name'], like 'umerod002lit' vs 'umerod002li'
-              self.process_direct_ssh_node(self.pm.get_hostname(), c_node)
+              self.process_direct_ssh_node(self.pm.get_hostname())
             else:
               # The node could not be reached directly, use script via host machine.
-              self.process_pm_only_node(c_node)
+              self.process_pm_only_node()
             # Now save vm info
             self.vm.save()
             self.node_ids.add(self.vm.get_id())
@@ -278,15 +268,13 @@ class RunCollect:
               self.pm.stop_vm(self.vm)
           else: # c_node is not in vm list
             myLogging.logger.info("To check non-vm conf node: %s" % c_node)
-            ret = parseUtil.ping_a_node(c_node)
+            ret = parseUtil.ping_a_node(parseUtil.parse_login(c_node)[0])
             myLogging.logger.info('Ping result: %d' % ret)
             if not ret:  # the node could be reaching
               self.vm = virtMachine.VirMachine(c_node)
-              self.vm.set_conf_name(c_node)
-              self.process_direct_ssh_node('', c_node)
+              self.process_direct_ssh_node()
             else:
               self.vm = virtMachine.VirMachine(c_node, 'N')
-              self.vm.set_conf_name(c_node)
               self.vm.attr.update({'Ping_reachable': "N",
                                    'Platform': self.vm.get_platform(),
                                    })
@@ -301,13 +289,13 @@ class RunCollect:
     self.current_rs = sqlRunState.SQLRunState(begin=None, pf=current_pf)
     self.current_rs.save()
     self.send_req2web()
-    for vm_state in (x for x in filter(lambda x: parseUtil.node_not_in_list(x['Name'], self.conf.get_all_nodes()),
+    for vm_state in (x for x in filter(lambda x: parseUtil.node_not_in_list(x['Name'], self.conf.get_all_nodes_host()),
                                        self.vm_list)):
       myLogging.logger.info("To check orphan node: %s" % vm_state)
       self.pm = physicalMachine.HostMachine(self.pm_login_map[vm_state['Host']])
       self.pm.init_ssh()
       vm_state['Running'] = self.pm.update_vm_status(vm_state)
-      self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'], True)
+      self.vm = virtMachine.VirMachine(vm_state['Name'], vm_state['Running'], vm_state['Id_in_host'], True, vm_name=vm_state['Name'])
 
       if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():
         myLogging.logger.info("Starting vm %s" % vm_state['Name'])
@@ -321,7 +309,7 @@ class RunCollect:
                               self.conf.get_para_float('wait_vm_start_sleep_time'))
         time.sleep(self.conf.get_para_float('wait_vm_start_sleep_time'))
       # Now vm is running
-      self.process_pm_only_node(vm_state['Name'])
+      self.process_pm_only_node()
       self.vm.save()
       self.node_ids.add(self.vm.get_id())
       if vm_state['Running'] != 'Y' and self.conf.open_stop_vm():
@@ -340,8 +328,9 @@ class RunCollect:
   @myLogging.log('RunCollect')
   def collect_display_info(self):
     xServer.XServer.xs_list = set()
+    dm_passwd = self.conf.get_display_host_passwd()
     for host in self.conf.get_display_host_list():
-      xs = xServer.XServer(host)
+      xs = xServer.XServer(":".join([host, dm_passwd]) if dm_passwd else host)
       xs.get_x_servers(self.conf.get_para_float('connect_timeout'))
     myLogging.logger.info("xservers id all: [%s]" % map(lambda x: x.id, X_server.objects.all()))
     myLogging.logger.info("xservers id rev: [%s]" % list(xServer.XServer.xs_list))

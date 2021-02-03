@@ -42,7 +42,7 @@ class platform(models.Model):
 class platform_node_list(models.Model):
   id = models.BigAutoField(primary_key=True)
   Platform = models.ForeignKey(platform, on_delete=models.SET_NULL, null=True, default=None)
-  Node = models.CharField(max_length=20, unique=True)
+  Node = models.CharField(max_length=40, unique=True)
 
   class Meta:
     db_table = 'platform_node_list'
@@ -50,8 +50,9 @@ class platform_node_list(models.Model):
 
 class host_machine(models.Model):
   id = models.BigAutoField(primary_key=True)
-  Node = models.CharField(max_length=20, unique=True)
+  Name = models.CharField(max_length=40, unique=True)
   Host_name = models.CharField(max_length=20, default='')
+  Login = models.CharField(max_length=200, null=True, default=None)
 
   class Meta:
     db_table = 'host_machine'
@@ -59,7 +60,7 @@ class host_machine(models.Model):
 
 class display_machine(models.Model):
   id = models.BigAutoField(primary_key=True)
-  Node = models.CharField(max_length=20, unique=True)
+  Name = models.CharField(max_length=40, unique=True)
   IP = models.CharField(max_length=100, default='')
   Host_name = models.CharField(max_length=20, default='')
   Thalix = models.CharField(max_length=10, default='11.0')
@@ -68,6 +69,7 @@ class display_machine(models.Model):
   Owner = models.CharField(max_length=150, null=True, default='')
   Last_modified = models.DateTimeField(auto_now=True)
   Created = models.DateTimeField(auto_now_add=True)
+  Login = models.CharField(max_length=200, null=True, default=None)
 
 
   class Meta:
@@ -82,6 +84,7 @@ class X_server(models.Model):
   Tty = models.IntegerField()
   Valid = models.BooleanField(default=True)
   Active = models.BooleanField(default=False)
+  Login = models.CharField(max_length=200, null=True, default=None)
 
   class Meta:
     db_table = 'X_server'
@@ -91,12 +94,12 @@ class node(models.Model):
   Y_N = (('Y', 'Yes'),
          ('N', 'No'))
   id = models.BigAutoField(primary_key=True)
-  Name = models.CharField(max_length=20, unique=True)
+  Name = models.CharField(max_length=40, unique=True)
   Os = models.CharField(max_length=10, default='')
-  OPS_Name = models.CharField(max_length=20, default='')
+  Ops_name = models.CharField(max_length=20, default='')
   Structure = models.CharField(max_length=40, default='')
   Host = models.CharField(max_length=20, default='')
-  Host_Machine = models.ForeignKey(host_machine, on_delete=models.SET_NULL, null=True, default=None)
+  Host_machine = models.ForeignKey(host_machine, on_delete=models.SET_NULL, null=True, default=None)
   Ping_reachable = models.CharField(max_length=1, choices=Y_N, default='N')
   Reachable = models.CharField(max_length=1, choices=Y_N, default='N')
   Controlled = models.CharField(max_length=1, choices=Y_N, default='N')
@@ -114,6 +117,8 @@ class node(models.Model):
   Restarting = models.BooleanField(default=False)
   Last_modified = models.DateTimeField(auto_now=True)
   Created = models.DateTimeField(auto_now_add=True)
+  Login = models.CharField(max_length=200, null=True, default=None)
+  Vm_name = models.CharField(max_length=20, null=True, default='')
 
   class Meta:
     db_table = 'node'

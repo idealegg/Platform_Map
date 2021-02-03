@@ -36,20 +36,20 @@ class PlatformAdmin(admin.ModelAdmin):
 
 @admin.register(models.host_machine)
 class HostMachineAdmin(admin.ModelAdmin):
-    list_display = ('id', 'Node', 'Host_name')
+    list_display = ('id', 'Name', 'Host_name')
     list_per_page = 15
-    ordering = ('Node', 'Host_name')
-    search_fields = ('Node', 'Host_name')
+    ordering = ('Name', 'Host_name')
+    search_fields = ('Name', 'Host_name')
     list_editable = list(list_display[1:])
 
 
 @admin.register(models.display_machine)
 class DisplayMachineAdmin(admin.ModelAdmin):
-    list_display = ('id', 'Node', 'Host_name', 'IP', 'Thalix', 'Owner')
+    list_display = ('id', 'Name', 'Host_name', 'IP', 'Thalix', 'Owner')
     list_per_page = 15
-    ordering = ('Node', 'Host_name')
+    ordering = ('Name', 'Host_name')
     list_editable = list(list_display[1:])
-    search_fields = ('Node', 'Host_name', 'IP', '^Thalix', 'Owner')
+    search_fields = ('Name', 'Host_name', 'IP', '^Thalix', 'Owner')
     list_filter = ('Thalix', 'Owner')
 
 
@@ -66,22 +66,22 @@ class XServerAdmin(admin.ModelAdmin):
 
 @admin.register(models.node)
 class NodeAdmin(admin.ModelAdmin):
-    list_display = ('id', 'Name', 'Os', 'OPS_Name', 'Structure', 'Host', 'Host_Machine_id', 'Ping_reachable',
+    list_display = ('id', 'Name', 'Os', 'Ops_name', 'Structure', 'Host', 'Host_machine_id', 'Ping_reachable',
                     'Reachable', 'Controlled', 'Orphan', 'Id_in_host', 'Running', 'IP',
                     #'Interface',
                     'Thalix',
                     'Display', 'X_server_id', 'Config', 'CSCI',
                     'Restarting')
     list_per_page = 15
-    ordering = ('Name', 'OPS_Name')
-    fk_field = ('Host_Machine_id', 'X_server_id', 'Platform_id')
-    list_editable = ['Name', 'Os', 'OPS_Name', 'Structure', 'Host', 'Ping_reachable',
+    ordering = ('Name', 'Ops_name')
+    fk_field = ('Host_machine_id', 'X_server_id', 'Platform_id')
+    list_editable = ['Name', 'Os', 'Ops_name', 'Structure', 'Host', 'Ping_reachable',
                     'Reachable', 'Controlled', 'Orphan', 'Id_in_host', 'Running', 'IP',
                      #'Interface',
                     'Thalix',
                     'Display', 'Config', 'CSCI',
                     'Restarting']
-    search_fields = ('Name', 'OPS_Name', 'IP', '^Thalix', '^Display', 'Config', 'CSCI')
+    search_fields = ('Name', 'Ops_name', 'IP', '^Thalix', '^Display', 'Config', 'CSCI')
     list_filter = ('Host', 'Ping_reachable', 'Reachable', 'Controlled', 'Orphan', 'Running', 'Thalix', 'Restarting')
 
 

@@ -318,7 +318,7 @@ def physical(request):
   hms = host_machine.objects.all().order_by('Host_name')
   ret_info = []
   for hm in hms:
-    ns = node.objects.filter(Host_Machine=hm).order_by('Name')
+    ns = node.objects.filter(Host_machine=hm).order_by('Name')
     ret_info.append({'hm_name': hm.Host_name,
                      'nodes': ns,
                      'total': ns.count(),
@@ -356,8 +356,9 @@ def display(request):
                        'conflict': 'N' if ns.count() == 1 else 'Y',
                        'n_time': map(lambda x: {'n': x.Name, 't': datetime2str(x.Last_modified), 'r': x.Running}, ns),
                        })
-      a_room.append({'n': {
-                            'Node': d.Node,
+      if a_dm:
+        a_room.append({'n': {
+                            'Node': d.Name,
                             'Host_name': d.Host_name,
                             'n_t': datetime2str(d.Last_modified),
                             'os': d.Thalix,
@@ -381,7 +382,7 @@ def update_dm_user(host, user):
       break
   if found:
     try:
-      dm = display_machine.objects.get(Node=host, Owner="")
+      dm = display_machine.objects.get(Name__startswith=host, Owner="")
     except:
       myLogging.logger.info("Owner exists! Skip update.")
       return
@@ -429,9 +430,9 @@ def submit_display(request):
       nodes2.sort()
       if cmp(nodes, nodes2) != 0:
         for n in [y for y in nodes if y not in nodes2] + [y for y in nodes2 if y not in nodes]:
-          vm = virtMachine.VirMachine(n)
           with transaction.atomic():
-            vm_db = vm.get_vm_db_inst()
+            vm_db = node.objects.get(Name__startswith=n)
+            vm = virtMachine.VirMachine(vm_db.Login)
             vm.set_x_server(x if n in nodes else None)
           old_x =None if not vm_db else vm_db.X_server
           ret2 = vm.change_x11_fw(x if n in nodes else None)
@@ -498,17 +499,17 @@ def submit_restart_mmi(request):
       start_time = time.time()
       with transaction.atomic():
         try:
-          node.objects.get(Name=nd, Last_modified=str2datetime(n_time))
+          node_db = node.objects.get(Name__startswith=nd, Last_modified=str2datetime(n_time))
         except node.DoesNotExist:
             return return2 ( 'Node modified by others, pls refresh!', False)
         try:
-          node.objects.get(Name=nd, Last_modified=str2datetime(n_time), Restarting=False)
+          node_db = node.objects.get(Name__startswith=nd, Last_modified=str2datetime(n_time), Restarting=False)
         except node.DoesNotExist:
           return return2('Node restarted by others, pls wait!', False)
-        vm = virtMachine.VirMachine(nd)
+        vm = virtMachine.VirMachine(node_db.Login)
         vm.set_user('system')
         vm.save_restarting(True)
-      dm = display_machine.objects.get(Node=host)
+      dm = display_machine.objects.get(Name__startswith=host)
       if not vm.db_inst.CSCI.count('MMI'):
         if not vm.stop_node(timeout - (time.time()-start_time)):
           return return2('Stop node failed or timeout!')
@@ -557,7 +558,7 @@ def submit_tty(request):
       lock4.acquire()
       locked = True
       try:
-        dm = display_machine.objects.get(Node=host, Last_modified=str2datetime(n_time))
+        dm = display_machine.objects.get(Name__startswith=host, Last_modified=str2datetime(n_time))
       except display_machine.DoesNotExist:
         if locked:
           lock4.release()
@@ -566,7 +567,7 @@ def submit_tty(request):
         myLogging.logger.info('ret: %s' % ret)
         return JsonResponse({'ret': ret, 'n_t': n_t})
       n_t = datetime2str(dm.Last_modified)
-      xs = xServer.XServer(host)
+      xs = xServer.XServer(dm.Login)
       try:
         xs.init_ssh()
       except Exception, e:
@@ -703,7 +704,7 @@ whitelist = []
 def update_valid_user():
   try:
     vm = virtMachine.VirMachine('tai2')
-    vm.set_user('system')
+    vm.set_user('system', 'abc123')
     vm.init_ssh()
     vm.execute_cmd("/usr/bin/awk -F':' '/home/{print $1}' /etc/passwd")
     global valid_users

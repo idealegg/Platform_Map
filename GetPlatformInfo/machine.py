@@ -6,6 +6,7 @@ import myLogging
 import Platform_Map.settings
 import platform
 import confUtil
+import parseUtil
 
 
 class Machine(ssh.SSHClient):
@@ -17,16 +18,7 @@ class Machine(ssh.SSHClient):
     self.SCRIPT_PATH = 'vm_execute_script.sh'
     tmp = login.split(":")
     self.login = login
-    self.host = tmp[0]
-    self.port = 22
-    self.user = "root"
-    self.passwd = "abc123"
-    if len(tmp) > 1:
-      self.port = int(tmp[1])
-    if len(tmp) > 2:
-      self.user = tmp[2]
-    if len(tmp) > 3:
-      self.passwd = tmp[3]
+    self.host, self.port, self.user, self.passwd, self.passwd_list, self.name = parseUtil.parse_login(self.login)
     self.ssh_inited = False
     self.last_cmd = ''
     self.stdout = None
@@ -39,8 +31,9 @@ class Machine(ssh.SSHClient):
     self.connect_timeout = None
     self.conf = None
 
-  def set_user(self, user):
+  def set_user(self, user, passwd=None):
     self.user = user
+    self.passwd = passwd or (self.passwd_list[user] if user in self.passwd_list else 'abc123')
 
   def set_host(self, host):
     self.host = host
@@ -63,17 +56,26 @@ class Machine(ssh.SSHClient):
     return stdin, stdout, stderr
 
   @myLogging.log("Machine")
-  def init_ssh(self):
+  def init_ssh(self, port=None, user=None, passwd=None, timeout=None):
     if not self.ssh_inited:
+      port = port or self.port
+      user = user or self.user
+      if user in self.passwd_list:
+        passwd = self.passwd_list[user]
+      passwd = passwd or self.passwd
+      timeout = timeout if timeout is not None else (self.connect_timeout or Machine.class_connect_timeout)
+      self.port = port
+      self.user = user
+      self.passwd = passwd
       myLogging.logger.info( "Init ssh client [%s@%s:%d]." % (self.user, self.host, self.port))
       self.set_missing_host_key_policy(ssh.AutoAddPolicy())
       myLogging.logger.info( "Begin to connect to [%s@%s:%d] timeout:[%f]." %
-                             (self.user, self.host, self.port, self.connect_timeout or Machine.class_connect_timeout))
+                             (self.user, self.host, self.port, timeout))
       self.connect(self.host,
                               port=self.port,
                               username=self.user,
                               password=self.passwd,
-                              timeout=self.connect_timeout or Machine.class_connect_timeout)
+                              timeout=timeout)
       self.ssh_inited = True
     else:
       myLogging.logger.debug("Init ssh client again [%s@%s:%d]." % (self.user, self.host, self.port))
@@ -133,18 +135,18 @@ class Machine(ssh.SSHClient):
     if self.stdin:
       self.stdin.close()
       self.stdin=None
-    else:
-      myLogging.logger.warning("stdin is already closed!")
+    #else:
+    #  myLogging.logger.warning("stdin is already closed!")
     if self.stdout:
       self.stdout.close()
       self.stdout=None
-    else:
-      myLogging.logger.warning("stdout is already closed!")
+    #else:
+    #  myLogging.logger.warning("stdout is already closed!")
     if self.stderr:
       self.stderr.close()
       self.stderr=None
-    else:
-      myLogging.logger.warning("stderr is already closed!")
+    #else:
+    #  myLogging.logger.warning("stderr is already closed!")
 
   @myLogging.log("Machine")
   def tx_file(self, src, des):

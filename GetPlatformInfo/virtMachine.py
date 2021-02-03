@@ -4,7 +4,7 @@ from GetPlatformInfo.machine import Machine
 from GetPlatformInfo.physicalMachine import HostMachine
 from GetPlatformInfo.sqlOperator import SQLOperator
 from Display_Platform_Info.models import node, X_server, host_machine, platform_node_list, platform
-from GetPlatformInfo.sqlDisplayMachine import SQLDisplayMachine
+from GetPlatformInfo.displayMachine import DisplayMachine
 import re
 import myLogging
 import Platform_Map.settings
@@ -15,43 +15,37 @@ import parseUtil
 
 
 class VirMachine(Machine, SQLOperator):
-  def __init__(self, vm_host, running='Y', id_in_host=-1, is_orphan=False):
+  def __init__(self, vm_login, running='Y', id_in_host=-1, is_orphan=False, vm_name=""):
     SQLOperator.__init__(self)
-    Machine.__init__(self, vm_host)
+    Machine.__init__(self, vm_login)
     self.script = ''
-    self.vm_state = {'Name': vm_host,
+    self.vm_state = {'Name': self.name,
                      'Id_in_host': id_in_host,
                      'Running': running,
                      'Orphan': 'Y' if is_orphan else 'N',
+                     'Vm_name': vm_name,
+                     'Login': vm_login,
                      }
+    self.vm_name = vm_name
     self.cmdList = None
     self.cmdOut = {}
     self.attr = self.vm_state
-    self.conf_name = self.vm_state['Name']
     self.set_filter_function(node.objects.filter)
 
-  def set_conf_name(self, name):
-    self.conf_name = name
-    self.attr['Name'] = name
-
-  def set_name(self, name):
-    self.attr['Name'] = name
+  def set_vm_name(self, name):
+    self.vm_name = name
 
   def save(self):
-    if self.conf_name != self.attr['Name']:
-      self.attr['Name'] = self.conf_name
     self.db_inst = node(**self.attr)
     self.insert_or_update(self.db_inst, filters={'Name': self.attr['Name']}, kept={'Restarting'})
 
   def save_restarting(self, restarting):
-    if self.conf_name != self.attr['Name']:
-      self.attr['Name'] = self.conf_name
     self.db_inst = node(**self.attr)
     self.db_inst.Restarting = restarting
     self.insert_or_update(self.db_inst, filters={'Name': self.attr['Name']},
-                          kept={'Os', 'OPS_Name', 'Structure', 'Host', 'Host_Machine', 'Ping_reachable', 'Reachable',
+                          kept={'Os', 'Ops_name', 'Structure', 'Host', 'Host_machine', 'Ping_reachable', 'Reachable',
                                 'Controlled', 'Orphan', 'Id_in_host', 'Running', 'IP', 'Interface', 'Thalix', 'Display',
-                                'X_server', 'Config', 'CSCI', 'Platform'})
+                                'X_server', 'Config', 'CSCI', 'Platform', 'Login', 'Vm_name'})
 
   def get_vm_db_inst(self):
     return self.get_db_inst(filters={'Name': self.attr['Name']})
@@ -63,7 +57,7 @@ class VirMachine(Machine, SQLOperator):
           return self.attr['X_server']
         host, port = re.split('\s+', self.attr['Display'])
         if host.replace('.', '').isdigit():  # is ip address
-          dm = SQLDisplayMachine.get_inst_by_ip(host)
+          dm = DisplayMachine.get_inst_by_ip(host)
           x_set = X_server.objects.filter(Display_machine=dm, Port=port)
         else:
           x_set = X_server.objects.filter(Host=host, Port=port)
@@ -90,17 +84,17 @@ class VirMachine(Machine, SQLOperator):
   def get_host_machine(self):
     if 'Host' in self.attr:
       if self.attr['Host']:
-        if 'Host_Machine' in self.attr and self.attr['Host_Machine']:
-          return self.attr['Host_Machine']
+        if 'Host_machine' in self.attr and self.attr['Host_machine']:
+          return self.attr['Host_machine']
         hm_set = host_machine.objects.filter(Host_name=self.attr['Host'])
         if hm_set.count():
           return hm_set[0]
     return None
 
   def get_ops_name(self):
-    if 'OPS_Name' in self.attr:
-      if self.attr['OPS_Name']:
-        return self.attr['OPS_Name']
+    if 'Ops_name' in self.attr:
+      if self.attr['Ops_name']:
+        return self.attr['Ops_name']
     return ''
 
   def get_platform(self):

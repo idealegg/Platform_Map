@@ -27,7 +27,7 @@ def get_conf():
 
 
 @myLogging.log("parseUtil")
-def gen_script(cmd_list, vm_name, is_ssh=True, is_root=False):
+def gen_script(cmd_list, vm_name, is_ssh=True, is_root=False, passwd='abc123'):
   vm = vm_name
   tmp_script = []
   ssh_cmd = 'ssh -o ConnectTimeout=%d -l system' % int(conf.get_para_float('connect_timeout'))
@@ -43,15 +43,15 @@ while (${done}) {
                    send "system\\n"
                    }
     }
-    "Password:" { send "abc123\\n"
+    "Password:" { send "%s\\n"
                   set nologined 0
                   }
-    "password:" { send "abc123\\n"
+    "password:" { send "%s\\n"
                   set nologined 0
                   }
     "system@" {
           set done 0
-''' % (conf.get_para_int('remote_cmd_timeout_seconds'), (ssh_cmd if is_ssh else 'virsh console'), vm))
+''' % (conf.get_para_int('remote_cmd_timeout_seconds'), (ssh_cmd if is_ssh else 'virsh console'), vm, passwd, passwd))
   for cmd in cmd_list:
     tmp_script.append('expect "system@"\nsend "%s\\n"\n' % (cmd))
   tmp_script.append('''          expect "system@"
@@ -121,7 +121,7 @@ def parse_cmd(cmd, cmd_out, vm_ops_name=''):
     res = re.search(UNAME_PATTERN, cmd_out[0])
     if res:
       ret1 =  {'Os': res.group(1),
-               'OPS_Name': res.group(2),
+               'Ops_name': res.group(2),
                'Structure': res.group(3),
               }
   elif cmd == 'cat /etc/thalix-release':
@@ -245,21 +245,52 @@ def ping_a_node(n):
 
 
 def node_equal(n1, n2):
-  if 'PLAT_FORM_SITE' not in os.environ or os.environ['PLAT_FORM_SITE'] == 'JV':
-    return n1 == n2
-  else:
-    if n1.endswith('t') or n1.endswith('s') or n1.endswith('x'):
-      n1 = n1[:-1]
-    if n2.endswith('t') or n2.endswith('s') or n2.endswith('x'):
-      n2 = n2[:-1]
-    return n1 == n2
+  n1_list = n1.split(":")
+  n2_list = n2.split(":")
+  if 'PLAT_FORM_SITE' in os.environ and os.environ['PLAT_FORM_SITE'] != 'JV':
+    if n1_list[0][-1] in 'tsx':
+      n1_list[0] = n1_list[0][:-1]
+    if n2_list[0][-1] in 'tsx':
+      n2_list[0] = n2_list[0][:-1]
+  return all(map(lambda x: n1_list[x] == n2_list[x], range(min(len(n1_list), len(n2_list)))))
 
 
 def node_not_in_list(n, l):
   if 'PLAT_FORM_SITE' not in os.environ or os.environ['PLAT_FORM_SITE'] == 'JV':
     return n not in l
   else:
-    if n.endswith('t') or n.endswith('s') or n.endswith('x'):
-      n = n[:-1]
-    l2 = filter(lambda x: node_equal(x, n), l)
-    return not len(l2)
+    return any(map(lambda x: node_equal(x, n), l))
+
+
+def parse_login(login, check_name_only=False):
+  tmp = login.split(":")
+  host = tmp[0]
+  port = 22
+  user = ""
+  passwd = ""
+  passwd_list = {
+  }
+  if len(tmp) > 1:
+    if tmp[1].isdigit():
+      port = int(tmp[1])
+      tmp = tmp[2:]
+    else:
+      tmp = tmp[1:]
+  if not check_name_only:
+    while len(tmp) > 1:
+      user = user or tmp[0]
+      passwd = passwd or tmp[1]
+      if tmp[0] not in passwd_list:
+        passwd_list[tmp[0]] = tmp[1]
+      tmp = tmp[2:]
+    user = user or "root"
+    passwd = passwd or "abc123"
+  name = host if port == 22 else "%s:%s" % (host, port)
+  if not check_name_only:
+    return host, port, user, passwd, passwd_list, name
+  else:
+    return name
+
+
+def get_name_in_login(login):
+  return parse_login(login, check_name_only=True)

@@ -46,7 +46,7 @@
                     <thead>
                     <tr>
                         <th>Name</th>
-                        <th>OPS_Name</th>
+                        <th>Ops_name</th>
                         <th>Host</th>
                         <th>Reachable</th>
                         <th>Id_in_host</th>
@@ -61,7 +61,7 @@
                         {%  for item in hm.nodes %}
                         <tr id={{ forloop.counter }} onmouseover="this.style.backgroundColor='#ffff66';" onmouseout="altRow(this)">
                         <td class='itemvalue'>{{item.Name}}</td>
-                        <td class='itemvalue'>{{item.OPS_Name}}</td>
+                        <td class='itemvalue'>{{item.Ops_name}}</td>
                         <td class='itemvalue'>{{item.Host}}</td>
                         <td class='itemvalue'>{{item.Reachable}}</td>
                         <td class='itemvalue'>{{item.Id_in_host}}</td>

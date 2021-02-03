@@ -2,15 +2,16 @@
 
 from GetPlatformInfo.sqlOperator import SQLOperator
 from Display_Platform_Info.models import platform_node_list
+import parseUtil
 
 
 class SQLPlatformNodeList(SQLOperator):
-  def __init__(self, pf, n):
+  def __init__(self, pf, login):
     super(SQLPlatformNodeList, self).__init__()
     self.platform = pf
-    self.node = n
+    self.node = parseUtil.parse_login(login, check_name_only=True)
     self.attr = {'Platform': pf,
-                 'Node': n,
+                 'Node': self.node,
                  }
     self.set_filter_function(platform_node_list.objects.filter)
 

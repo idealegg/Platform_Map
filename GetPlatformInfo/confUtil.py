@@ -120,10 +120,16 @@ class Conf:
     tmp.sort()
     return tmp
 
+  def get_physical_host_passwd(self):
+    return "" if 'passwd' not in self.config['host'] else self.config['host']['passwd']
+
   def get_display_host_list(self):
     tmp = self.config['display']['list']
     tmp.sort()
     return tmp
+
+  def get_display_host_passwd(self):
+    return "" if 'passwd' not in self.config['display'] else self.config['display']['passwd']
 
   def get_site_list(self):
     tmp = self.config['site'].keys()
@@ -146,6 +152,10 @@ class Conf:
     tmp.sort()
     return tmp
 
+  def get_site_platform_passwd(self, site, platform):
+    return "" if 'passwd' not in self.config['site'][site][platform] else self.config['site'][site][platform]['passwd']
+
+
   def get_all_nodes(self):
     if not self.nodes:
       for site in self.config['site'].keys():
@@ -153,6 +163,9 @@ class Conf:
           self.nodes.extend(self.config['site'][site][platform]['list'])
     self.nodes.sort()
     return self.nodes
+
+  def get_all_nodes_host(self):
+    return list(map(lambda x: x if x.find(':') == -1 else x[:x.find(':')], self.get_all_nodes()))
 
   def try_virsh_console(self):
     return self.config['parameter']['try_virsh_console'].upper() in self.positive
