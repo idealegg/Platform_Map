@@ -104,5 +104,9 @@ venv.bak/
 .mypy_cache/
 
 log/
-db.sqlite3.*
+db.sqlite3*
 conf/*/
+conf/
+test_pymysql.py
+vm_execute_script.sh
+platform_mapping_start_node.ksh
