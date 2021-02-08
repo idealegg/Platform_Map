@@ -599,6 +599,7 @@ function expandWikiNode(icons, rec) {
                     beforeSend: function () {
                         //console.log('beforeSend');
                         $(t).parent().css('outline', 'outset');
+                        $(t).parent().find('.restart_btn').attr('disabled', true);
                         if (has_node_stopped(tdPreText, newText)){
                             $err.text(prefix+'Some node stopped. Waiting...');
                         }else{
@@ -658,6 +659,7 @@ function expandWikiNode(icons, rec) {
                     complete: function () {
                         //console.log('complete');
                         $(t).parent().css('outline-style', 'none');
+                        $(t).parent().find('.restart_btn').attr('disabled', false);
                     },
                     error: function (req, errmsg, exception) {
                         //console.log('error');

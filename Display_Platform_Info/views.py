@@ -9,6 +9,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.db import transaction
 from django.db.utils import IntegrityError
+from django.db.models import Q
 import GetPlatformInfo.runCollect as runCollect
 import GetPlatformInfo.myLogging as myLogging
 import GetPlatformInfo.virtMachine as virtMachine
@@ -382,7 +383,7 @@ def update_dm_user(host, user):
       break
   if found:
     try:
-      dm = display_machine.objects.get(Name__startswith=host, Owner="")
+      dm = display_machine.objects.get(Q(Name=host) | Q(Name__startswith=host+":"), Owner="")
     except:
       myLogging.logger.info("Owner exists! Skip update.")
       return
@@ -431,7 +432,7 @@ def submit_display(request):
       if cmp(nodes, nodes2) != 0:
         for n in [y for y in nodes if y not in nodes2] + [y for y in nodes2 if y not in nodes]:
           with transaction.atomic():
-            vm_db = node.objects.get(Name__startswith=n)
+            vm_db = node.objects.get(Q(Name=n) | Q(Name__startswith=n+":"))
             vm = virtMachine.VirMachine(vm_db.Login)
             vm.set_x_server(x if n in nodes else None)
           old_x =None if not vm_db else vm_db.X_server
@@ -499,17 +500,17 @@ def submit_restart_mmi(request):
       start_time = time.time()
       with transaction.atomic():
         try:
-          node_db = node.objects.get(Name__startswith=nd, Last_modified=str2datetime(n_time))
+          node_db = node.objects.get(Q(Name=nd) | Q(Name__startswith=nd+":"), Last_modified=str2datetime(n_time))
         except node.DoesNotExist:
             return return2 ( 'Node modified by others, pls refresh!', False)
         try:
-          node_db = node.objects.get(Name__startswith=nd, Last_modified=str2datetime(n_time), Restarting=False)
+          node_db = node.objects.get(Q(Name=nd) | Q(Name__startswith=nd+":"), Last_modified=str2datetime(n_time), Restarting=False)
         except node.DoesNotExist:
           return return2('Node restarted by others, pls wait!', False)
         vm = virtMachine.VirMachine(node_db.Login)
         vm.set_user('system')
         vm.save_restarting(True)
-      dm = display_machine.objects.get(Name__startswith=host)
+      dm = display_machine.objects.get(Q(Name=host) | Q(Name__startswith=host+":"))
       if not vm.db_inst.CSCI.count('MMI'):
         if not vm.stop_node(timeout - (time.time()-start_time)):
           return return2('Stop node failed or timeout!')
@@ -558,7 +559,7 @@ def submit_tty(request):
       lock4.acquire()
       locked = True
       try:
-        dm = display_machine.objects.get(Name__startswith=host, Last_modified=str2datetime(n_time))
+        dm = display_machine.objects.get(Q(Name=host) | Q(Name__startswith=host+":"), Last_modified=str2datetime(n_time))
       except display_machine.DoesNotExist:
         if locked:
           lock4.release()

@@ -110,3 +110,5 @@ conf/
 test_pymysql.py
 vm_execute_script.sh
 platform_mapping_start_node.ksh
+static/map_g
+Display_Platform_Info/migrations

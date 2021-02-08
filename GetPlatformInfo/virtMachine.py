@@ -252,7 +252,7 @@ exit 0
       if self.check_npm():
         self.execute_cmd('pkill -9  npm_main')
     if self.check_ipcs():
-      vm2 = VirMachine(self.attr['Name'])
+      vm2 = VirMachine(self.login)
       vm2.set_user('system')
       vm2.init_ssh()
       vm2.execute_cmd('ksh -lc "start node"')
@@ -281,7 +281,7 @@ exit 0
   def start_node(self, time_out=120, check_interval=2, first_sleep=30):
     self.init_ssh()
     start_t = time.time()
-    vm2 = VirMachine(self.attr['Name'])
+    vm2 = VirMachine(self.login)
     vm2.set_user('system')
     vm2.init_ssh()
     vm2.execute_cmd('ksh -lc "start node -silent"')
@@ -364,7 +364,8 @@ EOF
     else:
       cmd = 'rm /etc/xinetd.d/x11-fw'
     if self.get_vm_db_inst().Running == 'N':
-      pm = HostMachine(self.get_vm_db_inst().Host)
+      pm_db = host_machine.objects.get(Host_name=self.get_vm_db_inst().Host)
+      pm = HostMachine(pm_db.Login)
       pm.init_ssh()
       new_status = pm.update_vm_status({'Name': self.attr['Name'], 'Running': 'N'})
       if new_status == 'N':
@@ -374,7 +375,8 @@ EOF
           pm.close_ssh()
           return err
     if not self.exec_comms([cmd, 'service xinetd reload'], pm=pm) and not pm:
-      pm = HostMachine(self.get_vm_db_inst().Host)
+      pm_db = host_machine.objects.get(Host_name=self.get_vm_db_inst().Host)
+      pm = HostMachine(pm_db.Login)
       pm.init_ssh()
       self.exec_comms([cmd, 'service xinetd reload'], pm=pm)
     myLogging.logger.info("cmd result: %s" % self.stdout.read())
