@@ -35,6 +35,8 @@ class RunCollect:
     self.current_rs = None
     self.last_all_begin_time = None
     self.last_all_end_time = None
+    self.conf_err_interval = 600
+    self.conf_err_retry = 6
 
   @myLogging.log('RunCollect')
   def init_data(self):
@@ -194,7 +196,7 @@ class RunCollect:
       myLogging.logger.info('Update their counter to %d' % rss[0].Counter)
       sqlRunState.SQLRunState.current_counter = rss[0].Counter
     else:
-      completed_pfs = sqlRunState.SQLRunState.get_complete_pfs()
+      completed_pfs = sqlRunState.SQLRunState.get_complete_pfs(float(self.conf.get_para_int('collect_interval')))
       myLogging.logger.info('completed_pfs: %s' % map(lambda x: ' '.join([x.Site, x.Platform]), completed_pfs))
     myLogging.logger.info("Current run state counter: %d" % sqlRunState.SQLRunState.current_counter)
     # Check vms in physical host machines.
@@ -400,11 +402,18 @@ class RunCollect:
         myLogging.logger.info("Last collecting cost %d seconds!" % collect_time)
         self.first_run = False
       except ConfigParser.Error:
-        myLogging.logger.exception("Exception in config parser!Exit!")
-        raise
+        myLogging.logger.exception("Exception in config parser!")
+        if self.conf_err_retry > 0:
+          myLogging.logger.info("Sleep %s seconds and retry!" % self.conf_err_interval)
+          time.sleep(self.conf_err_interval)
+          self.conf_err_retry -= 1
+        else:
+          myLogging.logger.error("Exception in config parser! Exit!")
+          raise
       except Exception:
         myLogging.logger.exception("Exception in run_collect!")
         self.first_run = False
+      self.conf_err_retry = 6
     return False
 
 

@@ -34,8 +34,9 @@ class SQLRunState(SQLOperator):
 
   @classmethod
   @myLogging.log('SQLRunState')
-  def get_complete_pfs(cls):
+  def get_complete_pfs(cls, collect_interval):
     complete_pfs = []
+    collect_interval = datetime.timedelta(seconds=collect_interval)
     rss = run_state.objects.all()
     counters = map(lambda x: x.Counter, rss)
     if not counters:
@@ -48,7 +49,7 @@ class SQLRunState(SQLOperator):
         rss2 = rss.filter(State='Collecting')
         if rss2.count():
           SQLRunState.current_counter = max_c
-          rss3 = rss.filter(State='Completed')
+          rss3 = rss.filter(State='Completed', End__gte=datetime.datetime.now()-collect_interval)
           SQLRunState.run_state_ids.update(map(lambda x: x.id, rss3))
           complete_pfs = map(lambda x: x.Current_platform, rss3)
         else:
@@ -59,7 +60,7 @@ class SQLRunState(SQLOperator):
           raise RuntimeError()
         else:
           SQLRunState.current_counter = max_c
-          rss3 = rss.filter(State='Completed', Counter=max_c)
+          rss3 = rss.filter(State='Completed', Counter=max_c, End__gte=datetime.datetime.now()-collect_interval)
           complete_pfs = map(lambda x: x.Current_platform, rss3)
           SQLRunState.run_state_ids.update(map(lambda x: x.id, rss3))
     return complete_pfs
