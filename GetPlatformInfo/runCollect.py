@@ -325,7 +325,7 @@ class RunCollect:
     myLogging.logger.info("run_state id all: [%s]" % map(lambda x: x.id, run_state.objects.all()))
     myLogging.logger.info("run_state id rev: [%s]" % list(sqlRunState.SQLRunState.run_state_ids))
     node.objects.exclude(id__in=self.node_ids).delete()
-    run_state.objects.exclude(id__in=sqlRunState.SQLRunState.run_state_ids).delete()
+    run_state.objects.exclude(id__in=sqlRunState.SQLRunState.run_state_ids, Current_platform__id__isnull=False).delete()
 
   @myLogging.log('RunCollect')
   def collect_display_info(self):

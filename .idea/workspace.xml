@@ -2,9 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="50f49696-fe37-4d1f-89f3-567f9555151e" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/Platform_Map.iml" afterPath="$PROJECT_DIR$/.idea/Platform_Map.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GetPlatformInfo/runCollect.py" afterPath="$PROJECT_DIR$/GetPlatformInfo/runCollect.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/GetPlatformInfo/sqlRunState.py" afterPath="$PROJECT_DIR$/GetPlatformInfo/sqlRunState.py" />
     </list>
     <ignored path="$PROJECT_DIR$/venv/" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -17,11 +18,11 @@
   </component>
   <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/Platform_Map$xServer.coverage" NAME="xServer Coverage Results" MODIFIED="1571214347760" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GetPlatformInfo" />
-    <SUITE FILE_PATH="coverage/Platform_Map$test_pymysql.coverage" NAME="test_pymysql Coverage Results" MODIFIED="1591092309222" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Platform_Map$confUtil.coverage" NAME="confUtil Coverage Results" MODIFIED="1589529221491" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GetPlatformInfo" />
     <SUITE FILE_PATH="coverage/Platform_Map$runCollect.coverage" NAME="runCollect Coverage Results" MODIFIED="1612257067811" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GetPlatformInfo" />
     <SUITE FILE_PATH="coverage/Platform_Map$myLogging.coverage" NAME="myLogging Coverage Results" MODIFIED="1571383550799" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GetPlatformInfo" />
+    <SUITE FILE_PATH="coverage/Platform_Map$confUtil.coverage" NAME="confUtil Coverage Results" MODIFIED="1589529221491" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GetPlatformInfo" />
+    <SUITE FILE_PATH="coverage/Platform_Map$test_pymysql.coverage" NAME="test_pymysql Coverage Results" MODIFIED="1591092309222" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Platform_Map$xServer.coverage" NAME="xServer Coverage Results" MODIFIED="1571214347760" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/GetPlatformInfo" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -42,21 +43,71 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="450">
-      <file leaf-file-name="runCollect.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="runCollect.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/GetPlatformInfo/runCollect.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="686">
-              <caret line="297" column="24" selection-start-line="297" selection-start-column="24" selection-end-line="297" selection-end-column="24" />
+            <state relative-caret-position="827">
+              <caret line="327" column="110" selection-start-line="327" selection-start-column="74" selection-end-line="327" selection-end-column="110" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sqlRunState.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="sqlRunState.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GetPlatformInfo/sqlRunState.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="261">
-              <caret line="40" column="44" selection-start-line="40" selection-start-column="44" selection-end-line="40" selection-end-column="44" />
+            <state relative-caret-position="1170">
+              <caret line="42" column="33" selection-start-line="42" selection-start-column="33" selection-end-line="42" selection-end-column="33" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="header.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/templates/header.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="570">
+              <caret line="19" column="112" selection-start-line="19" selection-start-column="20" selection-end-line="19" selection-end-column="112" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Backend2.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/templates/Backend2.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1620">
+              <caret line="54" column="69" selection-start-line="54" selection-start-column="53" selection-end-line="54" selection-end-column="69" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="bootstrap.min.css" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/static/css/bootstrap.min.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="general.css" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/static/css/general.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1066">
+              <caret line="285" column="34" selection-start-line="285" selection-start-column="34" selection-end-line="285" selection-end-column="34" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="confUtil.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GetPlatformInfo/confUtil.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1105">
+              <caret line="96" column="85" selection-start-line="96" selection-start-column="77" selection-end-line="96" selection-end-column="85" />
               <folding />
             </state>
           </provider>
@@ -65,7 +116,7 @@
       <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Display_Platform_Info/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="265">
+            <state relative-caret-position="21630">
               <caret line="721" column="119" selection-start-line="721" selection-start-column="110" selection-end-line="721" selection-end-column="119" />
               <folding>
                 <element signature="e#24#63#0" expanded="true" />
@@ -77,21 +128,9 @@
       <file leaf-file-name="xServer.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GetPlatformInfo/xServer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="36">
+            <state relative-caret-position="570">
               <caret line="20" column="26" selection-start-line="20" selection-start-column="21" selection-end-line="20" selection-end-column="26" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="displayMachine.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GetPlatformInfo/displayMachine.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="684">
-              <caret line="22" column="32" selection-start-line="22" selection-start-column="32" selection-end-line="22" selection-end-column="32" />
-              <folding>
-                <element signature="e#25#76#0" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -99,48 +138,8 @@
       <file leaf-file-name="models.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Display_Platform_Info/models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="278">
-              <caret line="60" column="6" selection-start-line="60" selection-start-column="6" selection-end-line="60" selection-end-column="6" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="virtMachine.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GetPlatformInfo/virtMachine.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6984">
-              <caret line="205" column="73" selection-start-line="205" selection-start-column="58" selection-end-line="205" selection-end-column="73" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="settings.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Platform_Map/settings.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5544">
-              <caret line="155" column="0" selection-start-line="155" selection-start-column="0" selection-end-line="155" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="sqlOperator.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GetPlatformInfo/sqlOperator.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1800">
-              <caret line="51" column="31" selection-start-line="51" selection-start-column="21" selection-end-line="51" selection-end-column="31" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="machine.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/GetPlatformInfo/machine.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="252">
-              <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
+            <state relative-caret-position="655">
+              <caret line="132" column="18" selection-start-line="132" selection-start-column="2" selection-end-line="132" selection-end-column="18" />
               <folding />
             </state>
           </provider>
@@ -209,8 +208,8 @@
         <option value="$PROJECT_DIR$/GetPlatformInfo/virtMachine.py" />
         <option value="$PROJECT_DIR$/static/js/alt_rows.js" />
         <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/GetPlatformInfo/runCollect.py" />
         <option value="$PROJECT_DIR$/GetPlatformInfo/sqlRunState.py" />
+        <option value="$PROJECT_DIR$/GetPlatformInfo/runCollect.py" />
       </list>
     </option>
   </component>
@@ -221,10 +220,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-9" />
+    <option name="x" value="2391" />
     <option name="y" value="-9" />
-    <option name="width" value="1938" />
-    <option name="height" value="1060" />
+    <option name="width" value="2418" />
+    <option name="height" value="1331" />
   </component>
   <component name="ProjectId" id="6RFbYe1l95lucb3RKpZ4rUct3kg" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
@@ -252,7 +251,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -271,9 +270,55 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Platform_Map" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Platform_Map" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="static" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Platform_Map" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Platform_Map" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="static" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="css" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Platform_Map" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="Platform_Map" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="GetPlatformInfo" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
-      <pane id="Scratches" />
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="ProjectViewState">
@@ -300,9 +345,9 @@
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="947" />
     <property name="SearchEverywhereHistoryKey" value="clearfloat&#9;null&#9;null&#10;favicon&#9;null&#9;null&#10;print&#9;null&#9;null" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../GetBaiduDoc" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="list.type.of.created.stylesheet" value="CSS" />
-    <property name="settings.editor.selected.configurable" value="editor.preferences.appearance" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="full.screen.before.presentation.mode" value="false" />
     <property name="js-jscs-nodeInterpreter" value="E:\nodejs\node.exe" />
@@ -913,7 +958,14 @@
       <option name="project" value="LOCAL" />
       <updated>1612755313362</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="Add retry function if config error.&#10;To check old platform if time condition meets.">
+      <created>1619427150388</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1619427150388</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TodoView">
@@ -926,10 +978,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-9" y="-9" width="1938" height="1060" extended-state="6" />
+    <frame x="2391" y="-9" width="2418" height="1331" extended-state="6" />
     <editor active="false" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15434083" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15416667" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25088027" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329582" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -990,7 +1042,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="SHOW_FILE_HISTORY_DETAILS" value="false" />
-    <MESSAGE value="4. factory usable version" />
     <MESSAGE value="4. factory usable version on 2019-11-1" />
     <MESSAGE value="4. factory usable version on 2019-11-14" />
     <MESSAGE value="2019-12-02&#10;    1. If read conf failed, don't reload conf.&#10;    2. Optimize the error message for page modification of site info or display info." />
@@ -1015,7 +1066,8 @@
     <MESSAGE value="not use" />
     <MESSAGE value="Update physical machine to remove passwd" />
     <MESSAGE value="2020-02-08 Fix some bug" />
-    <option name="LAST_COMMIT_MESSAGE" value="2020-02-08 Fix some bug" />
+    <MESSAGE value="Add retry function if config error.&#10;To check old platform if time condition meets." />
+    <option name="LAST_COMMIT_MESSAGE" value="Add retry function if config error.&#10;To check old platform if time condition meets." />
   </component>
   <component name="WindowStateProjectService">
     <state x="142" y="0" key="SettingsEditor" timestamp="1589192357578">
@@ -1047,20 +1099,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/static/css/signin.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="11" column="14" selection-start-line="11" selection-start-column="14" selection-end-line="11" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/templates/header.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="475">
-          <caret line="19" column="112" selection-start-line="19" selection-start-column="20" selection-end-line="19" selection-end-column="112" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Platform_Map/urls.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="900">
@@ -1089,13 +1127,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-543320044/nt.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="154">
-          <caret line="263" column="4" selection-start-line="263" selection-start-column="4" selection-end-line="263" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-543320044/nt.py" />
     <entry file="file://$PROJECT_DIR$/conf/BE/BE.conf">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -1117,13 +1149,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-543320044/_socket.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15825">
-          <caret line="633" column="12" selection-start-line="633" selection-start-column="12" selection-end-line="633" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-543320044/_socket.py" />
     <entry file="file://E:/Python27/Lib/socket.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3392">
@@ -1138,13 +1164,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/static/css/general.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="570">
-          <caret line="203" column="28" selection-start-line="203" selection-start-column="28" selection-end-line="203" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Display_Platform_Info/tests.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -1152,13 +1171,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-543320044/time.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="278">
-          <caret line="121" column="4" selection-start-line="121" selection-start-column="4" selection-end-line="121" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm2016.1/system/python_stubs/-543320044/time.py" />
     <entry file="file://E:/Python27/Lib/logging/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="162">
@@ -1191,7 +1204,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="183">
           <caret line="98" column="6" selection-start-line="98" selection-start-column="6" selection-end-line="98" selection-end-column="6" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1273,13 +1285,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GetPlatformInfo/confUtil.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2300">
-          <caret line="96" column="85" selection-start-line="96" selection-start-column="77" selection-end-line="96" selection-end-column="85" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GetPlatformInfo/parseUtil.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="6750">
@@ -1294,13 +1299,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/templates/Backend2.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="951">
-          <caret line="54" column="69" selection-start-line="54" selection-start-column="53" selection-end-line="54" selection-end-column="69" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GetPlatformInfo/physicalMachine.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="725">
@@ -1312,7 +1310,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="24048">
           <caret line="668" column="36" selection-start-line="668" selection-start-column="36" selection-end-line="668" selection-end-column="36" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1342,7 +1339,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1800">
           <caret line="51" column="31" selection-start-line="51" selection-start-column="21" selection-end-line="51" selection-end-column="31" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1358,39 +1354,30 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="6984">
           <caret line="205" column="73" selection-start-line="205" selection-start-column="58" selection-end-line="205" selection-end-column="73" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/GetPlatformInfo/displayMachine.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="684">
+        <state relative-caret-position="570">
           <caret line="22" column="32" selection-start-line="22" selection-start-column="32" selection-end-line="22" selection-end-column="32" />
           <folding>
-            <element signature="e#25#76#0" expanded="true" />
+            <element signature="e#25#76#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/GetPlatformInfo/xServer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="36">
+        <state relative-caret-position="570">
           <caret line="20" column="26" selection-start-line="20" selection-start-column="21" selection-end-line="20" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Display_Platform_Info/models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="278">
-          <caret line="60" column="6" selection-start-line="60" selection-start-column="6" selection-end-line="60" selection-end-column="6" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Display_Platform_Info/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="265">
+        <state relative-caret-position="21630">
           <caret line="721" column="119" selection-start-line="721" selection-start-column="110" selection-end-line="721" selection-end-column="119" />
           <folding>
             <element signature="e#24#63#0" expanded="true" />
@@ -1398,18 +1385,66 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GetPlatformInfo/runCollect.py">
+    <entry file="file://$PROJECT_DIR$/GetPlatformInfo/sqlRunState.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="686">
-          <caret line="297" column="24" selection-start-line="297" selection-start-column="24" selection-end-line="297" selection-end-column="24" />
+        <state relative-caret-position="1170">
+          <caret line="42" column="33" selection-start-line="42" selection-start-column="33" selection-end-line="42" selection-end-column="33" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GetPlatformInfo/sqlRunState.py">
+    <entry file="file://$PROJECT_DIR$/templates/header.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="261">
-          <caret line="40" column="44" selection-start-line="40" selection-start-column="44" selection-end-line="40" selection-end-column="44" />
+        <state relative-caret-position="570">
+          <caret line="19" column="112" selection-start-line="19" selection-start-column="20" selection-end-line="19" selection-end-column="112" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/templates/Backend2.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1620">
+          <caret line="54" column="69" selection-start-line="54" selection-start-column="53" selection-end-line="54" selection-end-column="69" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/css/bootstrap.min.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/css/general.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1066">
+          <caret line="285" column="34" selection-start-line="285" selection-start-column="34" selection-end-line="285" selection-end-column="34" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GetPlatformInfo/confUtil.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1105">
+          <caret line="96" column="85" selection-start-line="96" selection-start-column="77" selection-end-line="96" selection-end-column="85" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Display_Platform_Info/models.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="655">
+          <caret line="132" column="18" selection-start-line="132" selection-start-column="2" selection-end-line="132" selection-end-column="18" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GetPlatformInfo/runCollect.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="827">
+          <caret line="327" column="110" selection-start-line="327" selection-start-column="74" selection-end-line="327" selection-end-column="110" />
           <folding />
         </state>
       </provider>
