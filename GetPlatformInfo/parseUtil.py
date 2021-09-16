@@ -259,7 +259,7 @@ def node_not_in_list(n, l):
   if 'PLAT_FORM_SITE' not in os.environ or os.environ['PLAT_FORM_SITE'] == 'JV':
     return n not in l
   else:
-    return any(map(lambda x: node_equal(x, n), l))
+    return not any(map(lambda x: node_equal(x, n), l))
 
 
 def parse_login(login, check_name_only=False):
@@ -270,11 +270,10 @@ def parse_login(login, check_name_only=False):
   passwd = ""
   passwd_list = {
   }
+  tmp = tmp[1:]
   if len(tmp) > 1:
-    if tmp[1].isdigit():
-      port = int(tmp[1])
-      tmp = tmp[2:]
-    else:
+    if tmp[0].isdigit():
+      port = int(tmp[0])
       tmp = tmp[1:]
   if not check_name_only:
     while len(tmp) > 1:
@@ -285,6 +284,8 @@ def parse_login(login, check_name_only=False):
       tmp = tmp[2:]
     user = user or "root"
     passwd = passwd or "abc123"
+    if len(tmp) == 1:
+      passwd = tmp[0]
   name = host if port == 22 else "%s:%s" % (host, port)
   if not check_name_only:
     return host, port, user, passwd, passwd_list, name
