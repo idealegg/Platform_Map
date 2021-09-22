@@ -19,6 +19,7 @@ from django.db import connections
 from django.db.models import F
 import requests
 import ConfigParser
+import datetime
 
 
 class RunCollect:
@@ -338,8 +339,31 @@ class RunCollect:
     myLogging.logger.info("xservers id rev: [%s]" % list(xServer.XServer.xs_list))
     X_server.objects.exclude(id__in=xServer.XServer.xs_list).delete()
 
+  @myLogging.log('RunCollect')
   def mapping_platform_node(self):
-    pass
+    NON_IHP_ROOMS = ['HDS', 'HIM']
+    for dm in display_machine.objects.all():
+      found = False
+      for room in NON_IHP_ROOMS:
+        if dm.Name.startswith(room.lower()):
+          found = True
+          break
+      if not found:
+        try:
+          xss = X_server.objects.filter(Display_machine=dm, Active=True)
+          if xss.count() == 1:
+            ns = node.objects.filter(X_server=xss[0])
+            if ns.count() == 1:
+              pf = ns[0].Platform
+              if pf and pf.Owner and pf.Validity and datetime.datetime.now().date() <= pf.Validity:
+                found = True
+                dm.Owner = pf.Owner
+          if not found:
+            dm.Owner = ''
+          myLogging.logger.info('display machine %s owner change to %s!' % (dm.Name, dm.Owner))
+          dm.save()
+        except Exception, e:
+          myLogging.logger.exception('Exception in submit_platform!')
 
   @myLogging.log('RunCollect')
   def check_conf_change_timeout(self):

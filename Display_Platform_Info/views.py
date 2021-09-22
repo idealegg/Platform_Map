@@ -70,6 +70,9 @@ else:
     {'name': '外厅', 'rooms':
       [{'short': 'BEC', 'name': '平台区'}]
     },
+    {'name': '盛大国际', 'rooms':
+      [{'short': 'NN', 'name': '开放办公室'}]
+     },
   ]
   NON_IHP_ROOMS = []
 rooms = []
@@ -297,6 +300,11 @@ def submit_platform(request):
             lock2.release()
             locked = False
             ret['ret'] = 'Successful'
+            try:
+              for nds in node.objects.filter(Platform=pf_info, X_server__isnull=False, X_server__Active=True):
+                update_dm_user(nds.X_server.Display_machine.Name, request.user.username)
+            except Exception, e0:
+              myLogging.logger.exception('Exception in submit_platform to update dm owner! Ignore it.')
           else:
             ret['ret'] = 'You have no rights, please refresh page!'
     except Exception, e:
@@ -389,6 +397,19 @@ def update_dm_user(host, user):
       return
     dm.Owner = user
     dm.save()
+  else:
+    try:
+      dm = display_machine.objects.get(Q(Name=host) | Q(Name__startswith=host + ":"))
+      xs = X_server.objects.get(Display_machine=dm, Active=True)
+      n = node.objects.get(X_server=xs)
+      pf = n.Platform
+      if pf and pf.Owner and pf.Owner == user \
+              and pf.Validity and datetime.datetime.now().date() <= pf.Validity:
+        dm.Owner = pf.Owner
+        myLogging.logger.info('display machine %s owner change to %s!' % (dm.Name, dm.Owner))
+        dm.save()
+    except Exception, e:
+      myLogging.logger.exception('Exception in submit_platform!')
   
 
 @myLogging.log('views')
@@ -425,7 +446,7 @@ def submit_display(request):
           return JsonResponse({'ret': ret, 'cx': ret_cx})
       nodes.sort()
       nodes =filter(lambda y: y, nodes)
-      x = X_server.objects.get(Host=host, Tty=tty)
+      x = X_server.objects.get(Q(Host=host) | Q(Host=host.rstrip('txsd')), Tty=tty)
       ns = node.objects.filter(X_server=x)
       nodes2 = map(lambda y: y.Name, ns)
       nodes2.sort()
@@ -580,7 +601,7 @@ def submit_tty(request):
         return JsonResponse({'ret': ret, 'n_t': n_t})
       xs.execute_cmd('chvt %d' % tty)
       xs.close_ssh()
-      x_new = X_server.objects.get(Host=host, Tty=tty)
+      x_new = X_server.objects.get(Display_machine=dm, Tty=tty)
       with transaction.atomic():
         x_olds = X_server.objects.filter(Display_machine=dm, Active=True).exclude(Tty=tty)
         for x_old in x_olds:

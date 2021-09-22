@@ -61,7 +61,7 @@ class VirMachine(Machine, SQLOperator):
           x_set = X_server.objects.filter(Display_machine=dm, Port=port)
         else:
           x_set = X_server.objects.filter(Host=host, Port=port)
-          if host.endswith('t') or host.endswith('s') or host.endswith('x'):
+          if host[-1] in 'tsxd':
             if not x_set.count():
               x_set = X_server.objects.filter(Host=host[:-1], Port=port)
         if x_set.count():

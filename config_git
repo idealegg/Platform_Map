@@ -1,0 +1,8 @@
+git config --global user.name "idealegg"
+git config --global user.email "452144941@qq.com"
+
+git config --global user.name "Huang Dian"
+git config --global user.email "dian.huang@easysky.com.cn"
+
+
+$('.column_item').filter(function(x){return $(this).find('.dm-usr').text()!='anfp'}).each(function(x){$(this).hide();})

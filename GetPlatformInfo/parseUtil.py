@@ -248,9 +248,9 @@ def node_equal(n1, n2):
   n1_list = n1.split(":")
   n2_list = n2.split(":")
   if 'PLAT_FORM_SITE' in os.environ and os.environ['PLAT_FORM_SITE'] != 'JV':
-    if n1_list[0][-1] in 'tsx':
+    if n1_list[0][-1] in 'tsxd':
       n1_list[0] = n1_list[0][:-1]
-    if n2_list[0][-1] in 'tsx':
+    if n2_list[0][-1] in 'tsxd':
       n2_list[0] = n2_list[0][:-1]
   return all(map(lambda x: n1_list[x] == n2_list[x], range(min(len(n1_list), len(n2_list)))))
 
