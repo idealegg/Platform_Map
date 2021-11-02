@@ -314,7 +314,7 @@ function expandWikiNode(icons, rec) {
         var $old = $pppp.find('.tty_text[active="True"]');
         var prefix = 'ChTTY: ';
 
-        if ((host.indexOf('ihp')==-1) &&(!check_user(h_usr, c_usr))){
+        if (!check_user(h_usr, c_usr)){
             $err.text(prefix+'You could not change others display!');
             $err.css('color', '#ff0000');
             return;
@@ -357,9 +357,7 @@ function expandWikiNode(icons, rec) {
                 $old.attr('active', 'False');
                 $(t).attr('active', 'True');
                 $n_t_i.val(res['n_t']);
-                if (h_usr == ""){
-                   div_usr.text(c_usr);
-                }
+                div_usr.text(res['owner']);
             }
         },
         complete: function () {
@@ -402,7 +400,7 @@ function expandWikiNode(icons, rec) {
         var counter = null;
         var left_s = parseInt($timeout.val());
 
-        if ((host.indexOf('ihp')==-1) &&(!check_user(h_usr, c_usr))){
+        if (!check_user(h_usr, c_usr)){
             $err.text(prefix+'You could not change others display!');
             $err.css('color', '#ff0000');
             return;
@@ -560,7 +558,7 @@ function expandWikiNode(icons, rec) {
         var node_txt = null;
         var prefix = 'ChNode: ';
         
-        if ((host.indexOf('ihp')==-1) &&(!check_user(h_usr, c_usr))){
+        if (!check_user(h_usr, c_usr)){
             $err.text(prefix+'You could not change others display!');
             $err.css('color', '#ff0000');
             return;
@@ -622,6 +620,8 @@ function expandWikiNode(icons, rec) {
                                 for(var i = 0;i < res['cx'].length;++i ){
                                     var cx = res['cx'][i];
                                     var $h = $(document).find('#div-'+cx['host']);
+                                    var c_host_usr = $h.find('.dm-usr');
+                                    c_host_usr.text(cx['owner']);
                                     var $tty_info = $h.find('.tty_text').filter(
                                         function(x) {
                                             return $(this).text() === 'TTY'+cx['tty'];
@@ -650,9 +650,6 @@ function expandWikiNode(icons, rec) {
                                         }
                                     }
                                 }
-                            }
-                            if (h_usr == ""){
-                                div_usr.text(c_usr);
                             }
                         }
                     },
@@ -831,6 +828,7 @@ function expandWikiNode(icons, rec) {
         var button = $('.display_mine_all');
         var h_usr = null;
         var hide = button.text() === 'Display mine';
+        var haveOne=false;
 
         console.log(button.text());
 
@@ -845,6 +843,18 @@ function expandWikiNode(icons, rec) {
                     button.text('Display mine');
                 }
             }
+            else
+            {
+                haveOne = true;
+            }
+        }
+
+        if (!$("#prompt-info").length && !haveOne)
+        {
+            $(".right_content").prepend('<div id="prompt-info" style="color:red;font-size:20px">'
+            + 'Please check if you has a display machine!<br>'
+            + 'Please wait it refresh if you have and its network and Xorg are OK!<br>'
+                +'Connect Huangd if the problem still exist in 1 hour!</div>');
         }
     }
 

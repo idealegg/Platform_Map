@@ -343,7 +343,13 @@ exit 0
     err = 'Successful'
     pm = None
     new_status = 'N'
+    x_host = ""
     if x:
+      if x.Host != x.Login:
+        ret = os.system('ping -c 1 -W 1 %s' % x.Host)
+        x_host = x.Login if ret else x.Host
+      else:
+        x_host = x.Host
       cmd = '''
     cat << EOF > /etc/xinetd.d/x11-fw
 service x11-fw
@@ -360,7 +366,7 @@ service x11-fw
  redirect = %s %d
 }
 EOF
-    ''' % (x.Host, x.Port)
+    ''' % (x_host, x.Port)
     else:
       cmd = 'rm /etc/xinetd.d/x11-fw'
     if self.get_vm_db_inst().Running == 'N':

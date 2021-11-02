@@ -383,8 +383,22 @@ def display(request):
 
 
 @myLogging.log('views')
-def update_dm_user(host, user):
+def update_dm_user(host, user, impact_hosts=None):
   found = False
+  if impact_hosts is None:
+    impact_hosts = []
+  try:
+    for other_host in impact_hosts:
+      if other_host['host'] != host:
+        o_dm = display_machine.objects.get(Q(Name=other_host['host']) | Q(Name__startswith=other_host['host'] + ":"))
+        o_xs = X_server.objects.get(Display_machine=o_dm, Active=True)
+        o_ns = node.objects.filter(X_server=o_xs)
+        if not o_ns.count():
+          o_dm.Owner = ""
+          other_host['owner'] = ''
+          o_dm.save()
+  except Exception, eo:
+    myLogging.logger.info('Update other impact host failed!')
   for room in NON_IHP_ROOMS:
     if host.startswith(room.lower()):
       found = True
@@ -397,10 +411,17 @@ def update_dm_user(host, user):
       return
     dm.Owner = user
     dm.save()
+    for t_host in impact_hosts:
+      if t_host['host'] == host:
+        t_host['owner'] = dm.Owner
   else:
     try:
       dm = display_machine.objects.get(Q(Name=host) | Q(Name__startswith=host + ":"))
       xs = X_server.objects.get(Display_machine=dm, Active=True)
+    except Exception, e:
+      myLogging.logger.exception('Exception in update_dm_user!')
+      return
+    try:
       n = node.objects.get(X_server=xs)
       pf = n.Platform
       if pf and pf.Owner and pf.Owner == user \
@@ -408,9 +429,19 @@ def update_dm_user(host, user):
         dm.Owner = pf.Owner
         myLogging.logger.info('display machine %s owner change to %s!' % (dm.Name, dm.Owner))
         dm.save()
+        for t_host in impact_hosts:
+          if t_host['host'] == host:
+            t_host['owner'] = dm.Owner
+        return
     except Exception, e:
-      myLogging.logger.exception('Exception in submit_platform!')
-  
+      myLogging.logger.info('Active node not found or more than one!')
+    dm.Owner = ""
+    dm.save()
+    for t_host in impact_hosts:
+      if t_host['host'] == host:
+        t_host['owner'] = dm.Owner
+    myLogging.logger.info('display machine %s owner change to %s!' % (dm.Name, dm.Owner))
+
 
 @myLogging.log('views')
 @csrf_exempt
@@ -471,6 +502,7 @@ def submit_display(request):
           ret_cx.append({'host': cx.Host,
                          'tty': cx.Tty,
                          'ns': s_ns,
+                         'owner': cx.Display_machine.Owner,
                          'c': 'Y' if s_ns.count(' ') else 'N',
                          'n_time': map(lambda y: {'n': y.Name, 't': datetime2str(y.Last_modified), 'r': y.Running}, cx_ns)
                          })
@@ -492,7 +524,7 @@ def submit_display(request):
         lock3.release()
         #locked = False
       if ret == "Successful":
-        update_dm_user(host, request.user.username)
+        update_dm_user(host, request.user.username, ret_cx)
   myLogging.logger.info('ret: %s' % ret)
   myLogging.logger.info('cx: %s' % ret_cx)
   return JsonResponse({'ret': ret, 'cx': ret_cx})
@@ -571,6 +603,7 @@ def submit_tty(request):
   ret = 'Failed'
   locked = False
   n_t = ''
+  owner = request.user.username
   if request.method == 'POST':
     try:
       host = request.POST.get('host').strip()
@@ -623,9 +656,12 @@ def submit_tty(request):
         lock4.release()
       if ret == "Successful":
         update_dm_user(host, request.user.username)
+        o_dm = display_machine.objects.get(Q(Name=host) | Q(Name__startswith=host + ":"))
+        n_t = datetime2str(o_dm.Last_modified)
+        owner = o_dm.Owner
         #locked = False
   myLogging.logger.info('ret: %s, n_t: %s' % (ret, n_t))
-  return JsonResponse({'ret': ret, 'n_t': n_t})
+  return JsonResponse({'ret': ret, 'n_t': n_t, 'owner': owner})
 
 
 @myLogging.log('views')
