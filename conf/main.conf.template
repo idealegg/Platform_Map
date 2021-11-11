@@ -1,0 +1,21 @@
+# case sensitive for section titles, not for value pairs.
+[host]
+Passwd: ***
+Nodelist: xxxxx
+
+[display]
+Nodelist:
+# xxxx:root:****
+
+[parameter]
+open_stop_vm : True
+try_virsh_console: False
+check_domain_format: False
+check_site_platform_format: False
+remote_cmd_timeout_seconds: 3
+remote_cmd_timeout_times: 0
+collect_interval: 3600
+connect_timeout: 1.0
+#cmds=message
+return_start: True
+#skip_first_display_collect: True

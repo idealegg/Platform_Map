@@ -105,8 +105,9 @@ venv.bak/
 
 log/
 db.sqlite3*
-conf/*/
-conf/
+conf/*
+!conf/logging.json
+!conf/*.template
 test_pymysql.py
 vm_execute_script.sh
 platform_mapping_start_node.ksh

@@ -1,0 +1,8 @@
+#Format
+#[<Site name> <Platform name>]
+#Description:
+#Owner:
+#Validity:
+#For multiple line, the second and following lines should start with one or more spaces.
+#Nodelist:
+
