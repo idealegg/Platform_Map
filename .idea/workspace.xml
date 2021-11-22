@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="50f49696-fe37-4d1f-89f3-567f9555151e" name="Default" comment="tty 和 display操作附带多个dm的owner受影响的处理。">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/conf/Site.conf.template" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/conf/logging.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/conf/main.conf.template" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+    <list default="true" id="50f49696-fe37-4d1f-89f3-567f9555151e" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Display_Platform_Info/views.py" afterPath="$PROJECT_DIR$/Display_Platform_Info/views.py" />
     </list>
     <ignored path="$PROJECT_DIR$/venv/" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -44,11 +41,23 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="450">
+      <file leaf-file-name="runCollect.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/GetPlatformInfo/runCollect.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="719">
+              <caret line="434" column="27" selection-start-line="434" selection-start-column="20" selection-end-line="434" selection-end-column="27" />
+              <folding>
+                <element signature="e#11146#13281#0" expanded="false" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="virtMachine.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/GetPlatformInfo/virtMachine.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="11451">
-              <caret line="358" column="21" selection-start-line="358" selection-start-column="21" selection-end-line="358" selection-end-column="21" />
+            <state relative-caret-position="811">
+              <caret line="341" column="6" selection-start-line="341" selection-start-column="6" selection-end-line="341" selection-end-column="6" />
               <folding>
                 <element signature="e#25#68#0" expanded="true" />
               </folding>
@@ -56,11 +65,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="views.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Display_Platform_Info/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="21813">
-              <caret line="663" column="61" selection-start-line="663" selection-start-column="61" selection-end-line="663" selection-end-column="61" />
+            <state relative-caret-position="392">
+              <caret line="492" column="34" selection-start-line="492" selection-start-column="34" selection-end-line="492" selection-end-column="34" />
               <folding />
             </state>
           </provider>
@@ -79,8 +88,8 @@
       <file leaf-file-name="alt_rows.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/static/js/alt_rows.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="91">
-              <caret line="359" column="43" selection-start-line="359" selection-start-column="43" selection-end-line="359" selection-end-column="43" />
+            <state relative-caret-position="-1193">
+              <caret line="303" column="13" selection-start-line="303" selection-start-column="13" selection-end-line="303" selection-end-column="13" />
               <folding>
                 <marker date="1635827746089" expanded="true" signature="30425:30449" ph="..." />
               </folding>
@@ -91,7 +100,7 @@
       <file leaf-file-name="settings.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Platform_Map/settings.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="733">
+            <state relative-caret-position="5082">
               <caret line="155" column="0" selection-start-line="155" selection-start-column="0" selection-end-line="155" selection-end-column="0" />
               <folding />
             </state>
@@ -118,11 +127,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.gitignore">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="604">
-              <caret line="108" column="18" selection-start-line="108" selection-start-column="18" selection-end-line="108" selection-end-column="18" />
+            <state relative-caret-position="3597">
+              <caret line="109" column="16" selection-start-line="109" selection-start-column="16" selection-end-line="109" selection-end-column="16" />
               <folding />
             </state>
           </provider>
@@ -202,11 +211,11 @@
         <option value="$PROJECT_DIR$/GetPlatformInfo/parseUtil.py" />
         <option value="$PROJECT_DIR$/config_git" />
         <option value="$PROJECT_DIR$/GetPlatformInfo/virtMachine.py" />
-        <option value="$PROJECT_DIR$/Display_Platform_Info/views.py" />
         <option value="$PROJECT_DIR$/static/js/alt_rows.js" />
         <option value="$PROJECT_DIR$/conf/Site.conf.template" />
         <option value="$PROJECT_DIR$/conf/main.conf.template" />
         <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/Display_Platform_Info/views.py" />
       </list>
     </option>
   </component>
@@ -217,10 +226,10 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1912" />
+    <option name="x" value="-8" />
     <option name="y" value="-8" />
     <option name="width" value="1936" />
-    <option name="height" value="1186" />
+    <option name="height" value="1066" />
   </component>
   <component name="ProjectId" id="6RFbYe1l95lucb3RKpZ4rUct3kg" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
@@ -254,76 +263,6 @@
             <PATH_ELEMENT>
               <option name="myItemId" value="Platform_Map" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Platform_Map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Platform_Map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Platform_Map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Platform_Map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="log" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Platform_Map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Platform_Map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="conf" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Platform_Map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Platform_Map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="conf" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WH" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Platform_Map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Platform_Map" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="GetPlatformInfo" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
@@ -1005,7 +944,14 @@
       <option name="project" value="LOCAL" />
       <updated>1635827973368</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="add conf template">
+      <created>1636599500664</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1636599500664</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TodoView">
@@ -1018,10 +964,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1912" y="-8" width="1936" height="1186" extended-state="0" />
+    <frame x="-8" y="-8" width="1936" height="1066" extended-state="6" />
     <editor active="false" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16044776" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16364606" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25088027" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.329582" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
@@ -1083,7 +1029,6 @@
   <component name="VcsManagerConfiguration">
     <option name="OFFER_MOVE_TO_ANOTHER_CHANGELIST_ON_PARTIAL_COMMIT" value="false" />
     <option name="SHOW_FILE_HISTORY_DETAILS" value="false" />
-    <MESSAGE value="2019-12-18&#10;    1. Fix bug that add/del site not to trigger re-collect.&#10;2020-01-07&#10;    1. Fix bug that conf change would cause some platforms not checked again.&#10;2020-05-12&#10;    1. Fix the problem loop when check vm is starting if vm cannot be started.&#10;    2. Change PM passwd.&#10;2020-05-15&#10;    1. Support Chinese in desc/owner." />
     <MESSAGE value="2020-05-29&#10;    1. Add tty change function.&#10;    2. Add restart mmi/node function.&#10;2020-06-01&#10;    1. Fix bug that no platform insert if validate from conf is null.&#10;    2. Adjust parameter for muti visit to database, add a loop to update database.&#10;    3. Collapse platform page.&#10;    4. Display a interval timer for restart node.&#10;    5. Prompt more info for display page.&#10;    6. Only start/stop node, no mmi more.&#10;    7. Add Restarting flag for node.&#10;    8. Optimise the logic to update a node." />
     <MESSAGE value="2020-06-02&#10;    1. Update the room name of jv.&#10;    2. Delete console log in js file.&#10;2020-06-03&#10;    1. Update the start/stop scripts.&#10;    2. Enable to change display for shutdown vm.&#10;    3. Enable the availability display for platform list.&#10;    4. Enable to delete display node." />
     <MESSAGE value="2020-06-04&#10;    1. Add header for all pages.&#10;    2. Add current time/total pf display in backend page.&#10;    3. Fix bug that collecting crash if dm Node name != Host name." />
@@ -1108,7 +1053,8 @@
     <MESSAGE value="修改登录信息的解析&#10;修改cd判断节点是否在列表的逻辑" />
     <MESSAGE value="增加公共平台用户使用权限限制" />
     <MESSAGE value="tty 和 display操作附带多个dm的owner受影响的处理。" />
-    <option name="LAST_COMMIT_MESSAGE" value="tty 和 display操作附带多个dm的owner受影响的处理。" />
+    <MESSAGE value="add conf template" />
+    <option name="LAST_COMMIT_MESSAGE" value="add conf template" />
   </component>
   <component name="WindowStateProjectService">
     <state x="142" y="0" key="SettingsEditor" timestamp="1589192357578">
@@ -1364,9 +1310,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="627">
           <caret line="22" column="32" selection-start-line="22" selection-start-column="32" selection-end-line="22" selection-end-column="32" />
-          <folding>
-            <element signature="e#25#76#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1378,21 +1321,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/GetPlatformInfo/runCollect.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="495">
-          <caret line="15" column="11" selection-start-line="15" selection-start-column="11" selection-end-line="15" selection-end-column="11" />
-          <folding>
-            <element signature="e#11146#13281#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/GetPlatformInfo/parseUtil.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="7887">
           <caret line="242" column="44" selection-start-line="242" selection-start-column="10" selection-end-line="242" selection-end-column="44" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1400,7 +1332,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="179025">
           <caret line="5437" column="25" selection-start-line="5437" selection-start-column="25" selection-end-line="5437" selection-end-column="25" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1408,17 +1339,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="9372">
           <caret line="284" column="21" selection-start-line="284" selection-start-column="21" selection-end-line="284" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/GetPlatformInfo/virtMachine.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="11451">
-          <caret line="358" column="21" selection-start-line="358" selection-start-column="21" selection-end-line="358" selection-end-column="21" />
-          <folding>
-            <element signature="e#25#68#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1430,27 +1350,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Display_Platform_Info/views.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="21813">
-          <caret line="663" column="61" selection-start-line="663" selection-start-column="61" selection-end-line="663" selection-end-column="61" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/static/js/alt_rows.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="91">
-          <caret line="359" column="43" selection-start-line="359" selection-start-column="43" selection-end-line="359" selection-end-column="43" />
-          <folding>
-            <marker date="1635827746089" expanded="true" signature="30425:30449" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Platform_Map/settings.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="733">
+        <state relative-caret-position="5082">
           <caret line="155" column="0" selection-start-line="155" selection-start-column="0" selection-end-line="155" selection-end-column="0" />
           <folding />
         </state>
@@ -1484,7 +1386,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-594">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1492,7 +1393,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="231">
           <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1500,14 +1400,51 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="231">
           <caret line="7" column="16" selection-start-line="7" selection-start-column="16" selection-end-line="7" selection-end-column="16" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="604">
-          <caret line="108" column="18" selection-start-line="108" selection-start-column="18" selection-end-line="108" selection-end-column="18" />
+        <state relative-caret-position="3597">
+          <caret line="109" column="16" selection-start-line="109" selection-start-column="16" selection-end-line="109" selection-end-column="16" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GetPlatformInfo/runCollect.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="719">
+          <caret line="434" column="27" selection-start-line="434" selection-start-column="20" selection-end-line="434" selection-end-column="27" />
+          <folding>
+            <element signature="e#11146#13281#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/static/js/alt_rows.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1193">
+          <caret line="303" column="13" selection-start-line="303" selection-start-column="13" selection-end-line="303" selection-end-column="13" />
+          <folding>
+            <marker date="1635827746089" expanded="true" signature="30425:30449" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/GetPlatformInfo/virtMachine.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="811">
+          <caret line="341" column="6" selection-start-line="341" selection-start-column="6" selection-end-line="341" selection-end-column="6" />
+          <folding>
+            <element signature="e#25#68#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Display_Platform_Info/views.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="392">
+          <caret line="492" column="34" selection-start-line="492" selection-start-column="34" selection-end-line="492" selection-end-column="34" />
           <folding />
         </state>
       </provider>

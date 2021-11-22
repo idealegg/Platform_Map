@@ -487,9 +487,9 @@ def submit_display(request):
             vm_db = node.objects.get(Q(Name=n) | Q(Name__startswith=n+":"))
             vm = virtMachine.VirMachine(vm_db.Login)
             vm.set_x_server(x if n in nodes else None)
-          old_x =None if not vm_db else vm_db.X_server
-          ret2 = vm.change_x11_fw(x if n in nodes else None)
-          ret = ret2
+            old_x =None if not vm_db else vm_db.X_server
+            ret2 = vm.change_x11_fw(x if n in nodes else None)
+            ret = ret2
           if ret2 != "Successful":
             changed_xs = set([])
             break
