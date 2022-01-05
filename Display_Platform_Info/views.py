@@ -382,28 +382,32 @@ def display(request):
                                           })
 
 
-@myLogging.log('views')
-def update_dm_user(host, user, impact_hosts=None):
-  found = False
-  if impact_hosts is None:
-    impact_hosts = []
-  try:
-    for other_host in impact_hosts:
-      if other_host['host'] != host:
+def update_dms_user(ihosts, host, user, diff_only=False):
+  for other_host in ihosts:
+    if diff_only:
+      if other_host['host'] != host and all(map(lambda x: not other_host['host'].startswith(x.lower()), NON_IHP_ROOMS)):
         o_dm = display_machine.objects.get(Q(Name=other_host['host']) | Q(Name__startswith=other_host['host'] + ":"))
         o_xs = X_server.objects.get(Display_machine=o_dm, Active=True)
         o_ns = node.objects.filter(X_server=o_xs)
         if not o_ns.count():
-          o_dm.Owner = ""
-          other_host['owner'] = ''
+          o_dm.Owner = user
+          other_host['owner'] = o_dm.Owner
           o_dm.save()
-  except Exception, eo:
+    else:
+      if other_host['host'] == host:
+        other_host['owner'] = user
+
+
+@myLogging.log('views')
+def update_dm_user(host, user, impact_hosts=None):
+  if impact_hosts is None:
+    impact_hosts = []
+  try:
+    update_dms_user(impact_hosts, host, '', True)
+    myLogging.logger.info('display machine %s owner change to %s!' % (impact_hosts, ""))
+  except:
     myLogging.logger.info('Update other impact host failed!')
-  for room in NON_IHP_ROOMS:
-    if host.startswith(room.lower()):
-      found = True
-      break
-  if found:
+  if any(map(lambda x: host.startswith(x.lower()), NON_IHP_ROOMS)):
     try:
       dm = display_machine.objects.get(Q(Name=host) | Q(Name__startswith=host+":"), Owner="")
     except:
@@ -411,14 +415,13 @@ def update_dm_user(host, user, impact_hosts=None):
       return
     dm.Owner = user
     dm.save()
-    for t_host in impact_hosts:
-      if t_host['host'] == host:
-        t_host['owner'] = dm.Owner
+    update_dms_user(impact_hosts, host, dm.Owner, False)
+    myLogging.logger.info('display machine %s owner change to %s!' % (dm.Name, dm.Owner))
   else:
     try:
       dm = display_machine.objects.get(Q(Name=host) | Q(Name__startswith=host + ":"))
       xs = X_server.objects.get(Display_machine=dm, Active=True)
-    except Exception, e:
+    except:
       myLogging.logger.exception('Exception in update_dm_user!')
       return
     try:
@@ -427,19 +430,15 @@ def update_dm_user(host, user, impact_hosts=None):
       if pf and pf.Owner and pf.Owner == user \
               and pf.Validity and datetime.datetime.now().date() <= pf.Validity:
         dm.Owner = pf.Owner
-        myLogging.logger.info('display machine %s owner change to %s!' % (dm.Name, dm.Owner))
         dm.save()
-        for t_host in impact_hosts:
-          if t_host['host'] == host:
-            t_host['owner'] = dm.Owner
+        update_dms_user(impact_hosts, host, dm.Owner, False)
+        myLogging.logger.info('display machine %s owner change to %s!' % (dm.Name, dm.Owner))
         return
-    except Exception, e:
+    except:
       myLogging.logger.info('Active node not found or more than one!')
     dm.Owner = ""
     dm.save()
-    for t_host in impact_hosts:
-      if t_host['host'] == host:
-        t_host['owner'] = dm.Owner
+    update_dms_user(impact_hosts, host, dm.Owner, False)
     myLogging.logger.info('display machine %s owner change to %s!' % (dm.Name, dm.Owner))
 
 
