@@ -205,7 +205,11 @@ class RunCollect:
     for host_login in self.conf.get_physical_host_list():
       host_login = ':'.join([host_login, pm_passwd]) if pm_passwd else host_login
       pm = physicalMachine.HostMachine(host_login)
-      pm.init_ssh()
+      try:
+        pm.init_ssh()
+      except:
+        myLogging.logger.error("Pm %s connect failure!" % host_login)
+        continue
       pm.update_hostname()
       self.pm_login_map[pm.get_hostname()] = host_login
       if pm.get_vm_ist():
